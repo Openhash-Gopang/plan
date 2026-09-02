@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>K-Plan — 계획 정련 및 실행 관리</title>
+<meta name="description" content="목표와 실행 방법을 입력하면 K-Plan이 미비점과 허점을 짚어 정련된 계획서를 작성합니다. 각 단계 실행 결과를 입력하면 계획을 계속 갱신합니다(K-Recompose).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%233D4FC4%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-family%3D%22%27Pretendard%27%2C%27Malgun%20Gothic%27%2Csans-serif%22%20font-size%3D%2234%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3EP%3C/text%3E%3C/svg%3E">
+
+<!-- 고팡 공통 인증(지갑 세션) — desktop.html 등과 동일한 표준 로드 방식 -->
+<script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --gov:    #14113B; --nav: #241C6B; --pri: #4338CA; --pri-lt: #6366F1;
+  --pri-bg: #EEF2FF; --pri-bd: #C7D2FE; --teal: #0F8F7E; --teal-bg: #E4F5F2;
+  --sur: #FFFFFF; --bg: #F5F6FA; --bdr: #DFE2ED; --txt: #1A202C;
+  --sub: #4A5568; --hint: #718096;
+  --grn: #1B6B3A; --gbg: #E6F4EC; --red: #C01C28; --rbg: #FEE2E2;
+  --org: #C05621; --obg: #FEF3E2;
+  --font: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --r: 8px; --sh: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;color:var(--txt);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+textarea,input{font-family:var(--font)}
+button{font-family:var(--font);cursor:pointer}
+
+/* 로그인 오버레이 (klaw webapp.html #klaw-login-overlay 패턴 재사용) */
+#kplan-login-overlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(150deg,var(--gov) 0%,var(--nav) 60%,#362E9E 100%);display:none;align-items:center;justify-content:center;padding:24px}
+#kplan-login-overlay.show{display:flex}
+.kplan-login-box{background:var(--sur);border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.35);width:100%;max-width:380px;overflow:hidden}
+.kplan-login-header{background:linear-gradient(135deg,var(--gov) 0%,var(--pri) 100%);padding:24px 28px;text-align:center;color:#fff}
+.kplan-login-logo{font-size:32px;margin-bottom:8px}
+.kplan-login-title{font-size:20px;font-weight:900}
+.kplan-login-subtitle{font-size:11px;color:rgba(255,255,255,.65);margin-top:3px}
+.kplan-login-body{padding:24px 28px}
+.kplan-login-desc{font-size:13px;color:var(--sub);margin-bottom:16px;line-height:1.6;text-align:center}
+.kplan-login-row{display:flex;gap:8px;margin-bottom:10px}
+.kplan-login-row input{flex:1;min-width:0;font-size:14px;padding:11px 12px;border:1px solid var(--bdr);border-radius:8px;color:var(--txt);background:#fff}
+.kplan-login-row input:focus{outline:none;border-color:var(--pri)}
+.kplan-login-row button{flex-shrink:0;font-size:13px;font-weight:700;color:#fff;background:var(--pri);border:none;border-radius:8px;padding:0 16px;white-space:nowrap}
+.kplan-login-row button:disabled{background:var(--hint);cursor:not-allowed}
+.kplan-login-msg{font-size:12px;margin-top:10px;text-align:center;min-height:16px}
+.kplan-login-msg.err{color:var(--red)}
+.kplan-login-msg.ok{color:var(--grn)}
+.kplan-login-resend{font-size:11px;color:var(--hint);text-align:center;margin-top:10px}
+.kplan-login-resend a{color:var(--pri);cursor:pointer;text-decoration:underline}
+
+header{background:var(--nav);color:#fff;padding:0 20px;height:54px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.22)}
+header .logo{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px}
+header .logo-icon{width:28px;height:28px;background:var(--pri-lt);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
+header a.back{margin-left:auto;font-size:12px;color:rgba(255,255,255,.7);text-decoration:none}
+header a.back:hover{color:#fff}
+
+main{max-width:760px;margin:0 auto;padding:28px 18px 80px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);padding:22px;margin-bottom:18px}
+.card h2{font-size:15px;font-weight:800;margin-bottom:6px}
+.card .sub{font-size:12px;color:var(--sub);margin-bottom:16px;line-height:1.7}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:6px;margin-top:14px}
+label:first-of-type{margin-top:0}
+textarea{width:100%;min-height:90px;padding:11px 13px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13.5px;line-height:1.6;resize:vertical}
+textarea:focus{outline:none;border-color:var(--pri-lt)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:var(--r);font-size:13px;font-weight:700;border:none}
+.btn-primary{background:var(--pri);color:#fff}
+.btn-primary:hover{background:#362E9E}
+.btn-primary:disabled{background:var(--hint);cursor:not-allowed}
+.btn-outline{background:var(--pri-bg);color:var(--pri);border:1px solid var(--pri-bd)}
+.btn-outline:hover{background:#e2e6fb}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-teal:hover{background:#0b6f62}
+.btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+
+.spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.12);border-top-color:var(--pri);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);padding:14px 0}
+
+.plan-output{border:1px solid var(--bdr);border-radius:var(--r);padding:18px 20px;background:#FAFBFF;font-size:13.5px;line-height:1.85;max-height:640px;overflow-y:auto}
+.plan-output h1,.plan-output h2,.plan-output h3{margin:16px 0 8px;font-weight:800;color:var(--txt)}
+.plan-output h1{font-size:16px}.plan-output h2{font-size:14.5px}.plan-output h3{font-size:13.5px}
+.plan-output p{margin-bottom:10px}
+.plan-output ul,.plan-output ol{margin:0 0 10px 20px}
+.plan-output li{margin-bottom:4px}
+.plan-output strong{color:var(--pri)}
+.plan-output code{font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;background:var(--pri-bg);padding:1px 5px;border-radius:4px}
+
+.plan-id-box{display:flex;align-items:center;gap:10px;background:var(--teal-bg);border:1px solid #B7E4DC;border-radius:var(--r);padding:12px 16px;margin-top:14px;font-size:12.5px}
+.plan-id-box code{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:#0B6F62;font-size:13px}
+.plan-id-copy{margin-left:auto;font-size:11px;color:var(--teal);cursor:pointer;text-decoration:underline;flex-shrink:0}
+
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-active{background:var(--gbg);color:var(--grn)}
+.badge-completed{background:#EDEFF3;color:var(--sub)}
+.badge-abandoned{background:var(--rbg);color:var(--red)}
+
+.plan-list-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .12s}
+.plan-list-item:hover{border-color:var(--pri-lt)}
+.plan-list-item .pli-title{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plan-list-item .pli-meta{font-size:11px;color:var(--hint);flex-shrink:0}
+
+.errbox{background:var(--rbg);border:1px solid #F5B5B0;color:var(--red);border-radius:var(--r);padding:12px 15px;font-size:12.5px;margin-top:12px}
+.hint{font-size:11.5px;color:var(--hint);margin-top:8px;line-height:1.6}
+
+.tabbar{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--bdr)}
+.tabbar button{background:none;border:none;padding:10px 16px;font-size:13px;font-weight:700;color:var(--hint);border-bottom:2px solid transparent}
+.tabbar button.active{color:var(--pri);border-bottom-color:var(--pri)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+</style>
+</head>
+<body>
+
+<div id="kplan-login-overlay">
+  <div class="kplan-login-box">
+    <div class="kplan-login-header">
+      <div class="kplan-login-logo">🧭</div>
+      <div class="kplan-login-title">K-Plan 로그인</div>
+      <div class="kplan-login-subtitle">계획 정련을 시작하려면 전화번호 인증이 필요합니다</div>
+    </div>
+    <div class="kplan-login-body">
+      <div class="kplan-login-desc">본인 확인 후 GDC 잔액에서 사용한 만큼만 청구됩니다.<br>가입된 전화번호를 입력해 주세요.</div>
+      <div id="kplan-login-step-phone">
+        <div class="kplan-login-row">
+          <input type="tel" id="kplan-login-phone" placeholder="010-0000-0000" autocomplete="tel">
+          <button type="button" id="kplan-login-send-btn" onclick="_kplanLoginSendOtp()">인증번호 받기</button>
+        </div>
+      </div>
+      <div id="kplan-login-step-code" style="display:none">
+        <div class="kplan-login-row">
+          <input type="text" id="kplan-login-code" placeholder="인증번호 6자리" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+          <button type="button" id="kplan-login-verify-btn" onclick="_kplanLoginVerifyOtp()">확인</button>
+        </div>
+        <div class="kplan-login-resend">번호가 틀렸나요? <a onclick="_kplanLoginResetPhoneStep()">다시 입력</a></div>
+      </div>
+      <div class="kplan-login-msg" id="kplan-login-msg"></div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo"><span class="logo-icon">P</span>K-Plan</div>
+  <a class="back" href="https://plan.hondi.net">← 소개 페이지</a>
+  <a class="back" href="https://hondi.net" target="_blank">hondi.net ↗</a>
+</header>
+
+<main>
+  <div class="tabbar">
+    <button id="tab-btn-new" class="active" onclick="_switchTab('new')">새 계획 만들기</button>
+    <button id="tab-btn-mine" onclick="_switchTab('mine')">내 플랜</button>
+  </div>
+
+  <div id="tab-new" class="tab-panel active">
+    <div class="card">
+      <h2>목표와 실행 방법을 입력하세요</h2>
+      <div class="sub">K-Plan이 미비점과 허점을 짚어 정련된 계획서를 작성합니다. 요청을 곧바로 승인하지 않고, 이 방법이 목표 달성의 최선 경로인지부터 검토합니다.</div>
+
+      <label for="kplan-goal">목적·목표</label>
+      <textarea id="kplan-goal" placeholder="예: 3년 안에 지금 회사에서 시니어로 승진하고 싶다"></textarea>
+
+      <label for="kplan-method">지금 생각하고 있는 실행 방법</label>
+      <textarea id="kplan-method" placeholder="예: 매주 야근을 자원하고, 팀장에게 분기마다 성과를 어필하려고 한다"></textarea>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="kplan-submit-btn" onclick="_kplanSubmitNew()">계획 정련받기</button>
+      </div>
+      <div class="hint">베타 기간 중 하루 생성 한도가 있습니다. 첫 정련은 실제 DeepSeek 모델 호출 비용의 일부가 GDC 잔액에서 청구됩니다.</div>
+    </div>
+
+    <div class="card" id="kplan-result-card" style="display:none">
+      <h2>정련된 계획서</h2>
+      <div id="kplan-result-loading" class="loading-row" style="display:none"><span class="spinner"></span>K-Plan이 계획을 검토하는 중입니다…</div>
+      <div id="kplan-result-output" class="plan-output" style="display:none"></div>
+      <div id="kplan-result-err" style="display:none"></div>
+      <div class="btn-row" id="kplan-save-row" style="display:none">
+        <button class="btn btn-teal" onclick="_kplanSavePlan()">이 계획 저장하기</button>
+      </div>
+      <div id="kplan-saved-box" style="display:none"></div>
+    </div>
+  </div>
+
+  <div id="tab-mine" class="tab-panel">
+    <div class="card">
+      <h2>저장된 내 플랜</h2>
+      <div class="sub">plan_id를 K-Mail과의 대화에서 언급하면, 그 캠페인의 회신 결과가 도착했을 때 K-Recompose가 자동으로 이 플랜을 재검토합니다.</div>
+      <div id="kplan-list-loading" class="loading-row"><span class="spinner"></span>불러오는 중…</div>
+      <div id="kplan-list-empty" style="display:none;font-size:12.5px;color:var(--hint)">아직 저장된 플랜이 없습니다.</div>
+      <div id="kplan-list-items"></div>
+    </div>
+
+    <div class="card" id="kplan-detail-card" style="display:none">
+      <h2 id="kplan-detail-title">플랜 상세</h2>
+      <div class="sub"><span id="kplan-detail-status" class="badge badge-active">진행 중</span> · 체크포인트 <span id="kplan-detail-checkpoints">0</span>회 · plan_id: <code id="kplan-detail-planid" style="font-family:'SFMono-Regular',Consolas,monospace"></code></div>
+      <div id="kplan-detail-output" class="plan-output"></div>
+
+      <label for="kplan-checkpoint-input" style="margin-top:20px">이 단계까지의 실행 결과를 입력하세요</label>
+      <textarea id="kplan-checkpoint-input" placeholder="예: 이번 분기 성과 어필까지는 계획대로 했는데, 팀장 반응이 예상보다 미온적이었다"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="kplan-recompose-btn" onclick="_kplanRecompose()">실행 결과 반영해 계획 다시 정련받기</button>
+      </div>
+      <div id="kplan-recompose-loading" class="loading-row" style="display:none"><span class="spinner"></span>K-Recompose가 남은 계획을 재검토하는 중입니다…</div>
+      <div id="kplan-recompose-err" style="display:none"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const PROXY = 'https://hondi-proxy.tensor-city.workers.dev';
+const KPLAN_RELAY_URL = PROXY + '/kplan/relay';
+const KPLAN_SP_RAW_URL = 'https://raw.githubusercontent.com/Openhash-Gopang/hondi/main/prompts/k-plan_v1_1.md';
+const _KPLAN_SP_CACHE_KEY = 'kplan_sp_cache_v1';
+const _KPLAN_SP_CACHE_TTL = 24 * 60 * 60 * 1000;
+
+function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// 아주 단순한 마크다운→HTML 변환(제목/굵게/리스트/문단) — 정련된 계획서
+// 렌더링용. 전용 라이브러리를 새로 붙이지 않고 klaw 저장소에도 없는
+// 가벼운 자체 구현으로 충분한 범위만 처리한다.
+function mdToHtml(md) {
+  const lines = String(md||'').split('\n');
+  let html = ''; let inList = false;
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) { if (inList) { html += '</ul>'; inList = false; } continue; }
+    let m;
+    if ((m = line.match(/^###\s+(.*)/))) { if (inList){html+='</ul>';inList=false;} html += `<h3>${_mdInline(m[1])}</h3>`; continue; }
+    if ((m = line.match(/^##\s+(.*)/)))  { if (inList){html+='</ul>';inList=false;} html += `<h2>${_mdInline(m[1])}</h2>`; continue; }
+    if ((m = line.match(/^#\s+(.*)/)))   { if (inList){html+='</ul>';inList=false;} html += `<h1>${_mdInline(m[1])}</h1>`; continue; }
+    if ((m = line.match(/^[-*]\s+(.*)/))) { if (!inList){html+='<ul>';inList=true;} html += `<li>${_mdInline(m[1])}</li>`; continue; }
+    if (inList) { html += '</ul>'; inList = false; }
+    html += `<p>${_mdInline(line)}</p>`;
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+function _mdInline(s) {
+  return escHtml(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/`(.+?)`/g, '<code>$1</code>');
+}
+
+let kplanSPText = '';
+async function _loadKPlanSP() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(_KPLAN_SP_CACHE_KEY) || 'null');
+    if (cached && (Date.now() - cached.ts) < _KPLAN_SP_CACHE_TTL) { kplanSPText = cached.text; return; }
+  } catch(e) {}
+  try {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 8000);
+    const res = await fetch(KPLAN_SP_RAW_URL, { cache: 'no-cache', signal: ac.signal });
+    clearTimeout(timer);
+    if (res.ok) {
+      kplanSPText = await res.text();
+      try { sessionStorage.setItem(_KPLAN_SP_CACHE_KEY, JSON.stringify({ text: kplanSPText, ts: Date.now() })); } catch(e) {}
+    }
+  } catch(e) { console.warn('[K-Plan] 정본 문서 로드 실패 — 기본 지시문으로 폴백:', e.message); }
+}
+_loadKPlanSP();
+
+// ══════════════════════════════════════════════════════════════
+// 전화번호 로그인 오버레이 — klaw webapp.html의 동일 패턴 재사용
+// ══════════════════════════════════════════════════════════════
+let kplanPhoneVerifyToken    = sessionStorage.getItem('kplan_phone_verify_token') || null;
+let kplanPhoneVerifyTokenExp = Number(sessionStorage.getItem('kplan_phone_verify_token_exp') || 0);
+let _kplanPendingE164        = '';
+let _kplanLoginWaiters       = [];
+
+function _kplanHasValidLogin() { return !!kplanPhoneVerifyToken && Date.now() < kplanPhoneVerifyTokenExp - 30000; }
+function _kplanLoginSetMsg(text, kind) {
+  const el = document.getElementById('kplan-login-msg');
+  el.textContent = text || ''; el.className = 'kplan-login-msg' + (kind ? ' ' + kind : '');
+}
+function _kplanLoginResetPhoneStep() {
+  document.getElementById('kplan-login-step-code').style.display = 'none';
+  document.getElementById('kplan-login-step-phone').style.display = '';
+  document.getElementById('kplan-login-code').value = '';
+  _kplanLoginSetMsg('', '');
+}
+async function _kplanLoginSendOtp() {
+  const phone = document.getElementById('kplan-login-phone').value.trim();
+  if (!phone) { _kplanLoginSetMsg('전화번호를 입력해 주세요.', 'err'); return; }
+  const btn = document.getElementById('kplan-login-send-btn');
+  btn.disabled = true; _kplanLoginSetMsg('인증번호 발송 중…', '');
+  try {
+    const res = await fetch(PROXY + '/biz/phone-otp-request', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ e164: phone }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.message || '인증번호 발송에 실패했습니다.');
+    _kplanPendingE164 = phone;
+    document.getElementById('kplan-login-step-phone').style.display = 'none';
+    document.getElementById('kplan-login-step-code').style.display = '';
+    document.getElementById('kplan-login-code').focus();
+    _kplanLoginSetMsg('인증번호를 문자로 보내드렸습니다.', 'ok');
+  } catch (e) { _kplanLoginSetMsg(e.message || '인증번호 발송에 실패했습니다.', 'err'); }
+  finally { btn.disabled = false; }
+}
+async function _kplanLoginVerifyOtp() {
+  const code = document.getElementById('kplan-login-code').value.trim();
+  if (!code) { _kplanLoginSetMsg('인증번호를 입력해 주세요.', 'err'); return; }
+  const btn = document.getElementById('kplan-login-verify-btn');
+  btn.disabled = true; _kplanLoginSetMsg('확인 중…', '');
+  try {
+    const res = await fetch(PROXY + '/biz/phone-otp-verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ e164: _kplanPendingE164, code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok || !data.phone_verify_token) throw new Error(data.message || '인증번호가 일치하지 않습니다.');
+
+    // klaw와 동일하게, OTP 인증 성공만으로 끝내지 않고 이 번호로 등록된
+    // 고팡 프로필이 실제로 있는지 미리 확인한다(PROFILE_NOT_FOUND를
+    // 나중에야 만나 오버레이가 다시 뜨지 않는 상태에 갇히는 것 방지).
+    const balRes = await fetch(PROXY + '/user/gdc-balance', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone_verify_token: data.phone_verify_token }),
+    });
+    const balData = await balRes.json().catch(() => ({}));
+    if (!balRes.ok || !balData?.ok) {
+      throw new Error(balData?.message || '이 전화번호로 등록된 고팡 계정을 찾을 수 없습니다. 고팡 앱에서 먼저 가입해 주세요.');
+    }
+
+    kplanPhoneVerifyToken    = data.phone_verify_token;
+    kplanPhoneVerifyTokenExp = new Date(data.expires_at).getTime();
+    sessionStorage.setItem('kplan_phone_verify_token', kplanPhoneVerifyToken);
+    sessionStorage.setItem('kplan_phone_verify_token_exp', String(kplanPhoneVerifyTokenExp));
+    document.getElementById('kplan-login-overlay').classList.remove('show');
+    _kplanLoginSetMsg('', '');
+    const waiters = _kplanLoginWaiters; _kplanLoginWaiters = [];
+    waiters.forEach(resolve => resolve());
+  } catch (e) { _kplanLoginSetMsg(e.message || '인증번호가 일치하지 않습니다.', 'err'); }
+  finally { btn.disabled = false; }
+}
+function _ensureKPlanLogin() {
+  if (_kplanHasValidLogin()) return Promise.resolve();
+  return new Promise((resolve) => {
+    _kplanLoginWaiters.push(resolve);
+    document.getElementById('kplan-login-overlay').classList.add('show');
+  });
+}
+function _kplanIsRecoverableAuthError(message) {
+  return /로그인이 필요합니다|인증 토큰이 만료|토큰 서명이 유효하지 않습니다/.test(message || '');
+}
+
+// ══════════════════════════════════════════════════════════════
+// /kplan/relay 호출
+// ══════════════════════════════════════════════════════════════
+async function _kplanRelayCall(tier, messages, opts = {}) {
+  const { maxTokens = 2000, generationType = null } = opts;
+  const doRequest = async () => {
+    const resp = await fetch(KPLAN_RELAY_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tier, messages, max_tokens: maxTokens, stream: false,
+        generation_type: generationType, phone_verify_token: kplanPhoneVerifyToken,
+      }),
+    });
+    let data;
+    try { data = await resp.json(); } catch(e) { throw new Error(`HTTP ${resp.status}`); }
+    if (!resp.ok || data.error) throw new Error(data.message || data.error || `HTTP ${resp.status}`);
+    return data.choices?.[0]?.message?.content || '';
+  };
+  try { return await doRequest(); }
+  catch (e) {
+    if (_kplanIsRecoverableAuthError(e.message)) {
+      kplanPhoneVerifyToken = null; kplanPhoneVerifyTokenExp = 0;
+      sessionStorage.removeItem('kplan_phone_verify_token'); sessionStorage.removeItem('kplan_phone_verify_token_exp');
+      await _ensureKPlanLogin();
+      return await doRequest();
+    }
+    throw e;
+  }
+}
+
+const KPLAN_SYSTEM_FALLBACK = '당신은 혼디넷의 K-Plan입니다. 사용자의 목표와 사용자가 제시한 실행 방법을 검토해, 미비점과 허점을 짚고 더 나은 대안이 있으면 함께 제시한 정련된 계획서를 작성하세요. 확정된 통계처럼 보이는 수치를 지어내지 말고, "완전 자동화"나 "AI가 대신 처리" 같은 과장된 표현을 쓰지 마세요.';
+
+function _kplanBuildSystemMessage() {
+  return { role: 'system', content: kplanSPText || KPLAN_SYSTEM_FALLBACK };
+}
+
+// ══════════════════════════════════════════════════════════════
+// 탭 전환
+// ══════════════════════════════════════════════════════════════
+function _switchTab(name) {
+  document.getElementById('tab-btn-new').classList.toggle('active', name === 'new');
+  document.getElementById('tab-btn-mine').classList.toggle('active', name === 'mine');
+  document.getElementById('tab-new').classList.toggle('active', name === 'new');
+  document.getElementById('tab-mine').classList.toggle('active', name === 'mine');
+  if (name === 'mine') _kplanLoadMyPlans();
+}
+
+// ══════════════════════════════════════════════════════════════
+// 새 계획 정련
+// ══════════════════════════════════════════════════════════════
+let _kplanCurrentMessages = [];
+let _kplanCurrentGoal = '';
+let _kplanCurrentRefinedMd = '';
+let _kplanSavedPlanId = null;
+
+async function _kplanSubmitNew() {
+  const goal = document.getElementById('kplan-goal').value.trim();
+  const method = document.getElementById('kplan-method').value.trim();
+  if (!goal) { alert('목적·목표를 입력해 주세요.'); return; }
+
+  await _ensureKPlanLogin();
+
+  const btn = document.getElementById('kplan-submit-btn');
+  btn.disabled = true;
+  document.getElementById('kplan-result-card').style.display = '';
+  document.getElementById('kplan-result-loading').style.display = 'flex';
+  document.getElementById('kplan-result-output').style.display = 'none';
+  document.getElementById('kplan-result-err').style.display = 'none';
+  document.getElementById('kplan-save-row').style.display = 'none';
+  document.getElementById('kplan-saved-box').style.display = 'none';
+
+  const userTurn = `[목적·목표]\n${goal}\n\n[제가 지금 생각하고 있는 실행 방법]\n${method || '(아직 구체적인 방법은 없습니다 — 처음부터 제안해 주세요)'}\n\n이 목표와 방법을 검토해, 미비점과 허점을 짚어주시고 정련된 계획서를 작성해 주세요.`;
+  const messages = [_kplanBuildSystemMessage(), { role: 'user', content: userTurn }];
+
+  try {
+    const raw = await _kplanRelayCall('kplan-pro', messages, { maxTokens: 2200, generationType: 'compose' });
+    messages.push({ role: 'assistant', content: raw });
+    _kplanCurrentMessages = messages;
+    _kplanCurrentGoal = goal;
+    _kplanCurrentRefinedMd = raw;
+
+    document.getElementById('kplan-result-loading').style.display = 'none';
+    const out = document.getElementById('kplan-result-output');
+    out.innerHTML = mdToHtml(raw);
+    out.style.display = '';
+    document.getElementById('kplan-save-row').style.display = 'flex';
+  } catch (e) {
+    document.getElementById('kplan-result-loading').style.display = 'none';
+    const err = document.getElementById('kplan-result-err');
+    err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function _kplanSavePlan() {
+  try {
+    const res = await fetch(PROXY + '/kplan/plan/create', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone_verify_token: kplanPhoneVerifyToken,
+        title: _kplanCurrentGoal.slice(0, 60),
+        goal: _kplanCurrentGoal,
+        messages: _kplanCurrentMessages,
+        refined_plan_md: _kplanCurrentRefinedMd,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.message || '저장에 실패했습니다.');
+    _kplanSavedPlanId = data.plan.plan_id;
+    const box = document.getElementById('kplan-saved-box');
+    box.style.display = '';
+    box.innerHTML = `<div class="plan-id-box">저장됨 — plan_id: <code>${escHtml(_kplanSavedPlanId)}</code>
+      <span class="plan-id-copy" onclick="navigator.clipboard.writeText('${escHtml(_kplanSavedPlanId)}')">복사</span></div>
+      <div class="hint">이 ID를 K-Mail과의 대화에서 "이 캠페인은 K-Plan 플랜 ${escHtml(_kplanSavedPlanId)}의 일부야"처럼 언급하면, 회신 결과가 도착했을 때 K-Recompose가 자동으로 이 플랜을 재검토합니다.</div>`;
+    document.getElementById('kplan-save-row').style.display = 'none';
+  } catch (e) {
+    alert('저장 실패: ' + e.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 내 플랜 목록 / 상세 / K-Recompose
+// ══════════════════════════════════════════════════════════════
+async function _kplanLoadMyPlans() {
+  await _ensureKPlanLogin();
+  const loading = document.getElementById('kplan-list-loading');
+  const empty = document.getElementById('kplan-list-empty');
+  const itemsEl = document.getElementById('kplan-list-items');
+  loading.style.display = 'flex'; empty.style.display = 'none'; itemsEl.innerHTML = '';
+  try {
+    const res = await fetch(PROXY + `/kplan/plan/list?phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
+    const data = await res.json().catch(() => ({}));
+    loading.style.display = 'none';
+    if (!res.ok || !data.ok) throw new Error(data.message || '목록을 불러오지 못했습니다.');
+    if (!data.items.length) { empty.style.display = ''; return; }
+    data.items.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'plan-list-item';
+      div.onclick = () => _kplanOpenPlan(p.plan_id);
+      div.innerHTML = `<span class="badge badge-${escHtml(p.status||'active')}">${p.status==='active'?'진행 중':p.status==='completed'?'완료':'중단'}</span>
+        <span class="pli-title">${escHtml(p.title || p.goal)}</span>
+        <span class="pli-meta">체크포인트 ${p.checkpoint_count||0}회</span>`;
+      itemsEl.appendChild(div);
+    });
+  } catch (e) {
+    loading.style.display = 'none';
+    empty.style.display = ''; empty.textContent = '⚠ ' + e.message;
+  }
+}
+
+let _kplanOpenPlanId = null;
+async function _kplanOpenPlan(planId) {
+  try {
+    const res = await fetch(PROXY + `/kplan/plan/get?plan_id=${encodeURIComponent(planId)}&phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.message || '플랜을 불러오지 못했습니다.');
+    const p = data.plan;
+    _kplanOpenPlanId = p.plan_id;
+    _kplanCurrentMessages = p.messages || [];
+    document.getElementById('kplan-detail-card').style.display = '';
+    document.getElementById('kplan-detail-title').textContent = p.title || p.goal;
+    const statusEl = document.getElementById('kplan-detail-status');
+    statusEl.className = 'badge badge-' + (p.status || 'active');
+    statusEl.textContent = p.status === 'active' ? '진행 중' : p.status === 'completed' ? '완료' : '중단';
+    document.getElementById('kplan-detail-checkpoints').textContent = p.checkpoint_count || 0;
+    document.getElementById('kplan-detail-planid').textContent = p.plan_id;
+    document.getElementById('kplan-detail-output').innerHTML = mdToHtml(p.refined_plan_md || '');
+    document.getElementById('kplan-detail-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    alert('불러오기 실패: ' + e.message);
+  }
+}
+
+async function _kplanRecompose() {
+  const input = document.getElementById('kplan-checkpoint-input');
+  const text = input.value.trim();
+  if (!text) { alert('실행 결과를 입력해 주세요.'); return; }
+  if (!_kplanOpenPlanId) return;
+
+  await _ensureKPlanLogin();
+  const btn = document.getElementById('kplan-recompose-btn');
+  btn.disabled = true;
+  document.getElementById('kplan-recompose-loading').style.display = 'flex';
+  document.getElementById('kplan-recompose-err').style.display = 'none';
+
+  const messages = [..._kplanCurrentMessages, {
+    role: 'user',
+    content: `[체크포인트 — 지금까지의 실행 결과]\n${text}\n\n이 결과를 근거로, 아직 실행하지 않은 나머지 계획을 재검토해 갱신해 주세요. 이미 끝난 부분은 다시 열지 말고, 무엇을 왜 바꾸는지 설명해 주세요.`,
+  }];
+
+  try {
+    const raw = await _kplanRelayCall('kplan-pro', messages, { maxTokens: 2200, generationType: 'recompose' });
+    messages.push({ role: 'assistant', content: raw });
+
+    const saveRes = await fetch(PROXY + '/kplan/plan/checkpoint', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone_verify_token: kplanPhoneVerifyToken, plan_id: _kplanOpenPlanId,
+        messages, refined_plan_md: raw,
+      }),
+    });
+    const saveData = await saveRes.json().catch(() => ({}));
+    if (!saveRes.ok || !saveData.ok) throw new Error(saveData.message || '저장에 실패했습니다.');
+
+    _kplanCurrentMessages = messages;
+    document.getElementById('kplan-detail-output').innerHTML = mdToHtml(raw);
+    document.getElementById('kplan-detail-checkpoints').textContent = saveData.plan.checkpoint_count;
+    input.value = '';
+  } catch (e) {
+    const err = document.getElementById('kplan-recompose-err');
+    err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
+  } finally {
+    document.getElementById('kplan-recompose-loading').style.display = 'none';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
