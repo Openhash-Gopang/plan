@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<link rel="icon" href="data:,">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Plan — 목표를 이루는 최선의 경로를 함께 찾는 AI</title>
+<meta name="description" content="K-Plan은 요청을 곧바로 수행하지 않고, 그 요청이 목표 달성의 최선 경로인지부터 평가하는 혼디넷의 계획 보조 AI입니다. K-Intent부터 경험의 공유까지, K-Recompose(중간 재평가)를 포함한 전체 처리 흐름을 소개합니다.">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --gov-header: #001233;
+  --gov-nav:    #1E2361;
+  --primary:    #4338CA;
+  --primary-dk: #362E9E;
+  --primary-lt: #6366F1;
+  --primary-bg: #EEF2FF;
+  --primary-bd: #C7D2FE;
+  --teal:       #0F8F7E;
+  --teal-dk:    #0B6F62;
+  --teal-bg:    #E4F5F2;
+  --surface:    #FFFFFF;
+  --bg:         #F5F6FA;
+  --border:     #DFE2ED;
+  --text:       #1A202C;
+  --sub:        #4A5568;
+  --hint:       #718096;
+  --green:      #1B6B3A; --green-bg: #E6F4EC;
+  --orange:     #C05621; --orange-bg: #FEF3E2;
+  --red:        #C01C28; --red-bg: #FEE2E2;
+  --font: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --shadow-1: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-2: 0 6px 18px rgba(0,0,0,.10);
+  --r: 6px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); font-size: 14px; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; line-height: 1.6; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+
+/* GOV BAR */
+.gov-bar { background: var(--gov-header); color: rgba(255,255,255,.72); font-size: 11px; padding: 6px 0; text-align: center; letter-spacing: .3px; font-weight: 500; }
+.gov-bar a { color: rgba(255,255,255,.90); font-weight: 700; }
+.gov-bar a:hover { text-decoration: underline; }
+
+/* TOPNAV */
+.topnav { background: var(--gov-nav); position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 10px rgba(0,0,0,.22); }
+.topnav-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; align-items: stretch; height: 54px; }
+.topnav-logo { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.4px; padding-right: 18px; border-right: 1px solid rgba(255,255,255,.15); flex-shrink: 0; margin-right: 6px; }
+.topnav-logo-icon { width: 30px; height: 30px; background: var(--primary-lt); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
+.topnav-links { display: flex; flex: 1; }
+.topnav-links a { display: flex; align-items: center; padding: 0 15px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.72); transition: background .15s, color .15s; border-bottom: 3px solid transparent; white-space: nowrap; }
+.topnav-links a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.topnav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; padding-left: 16px; flex-shrink: 0; }
+.topnav-status { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.55); }
+.status-dot-amber { width: 7px; height: 7px; border-radius: 50%; background: #f0b429; }
+.topnav-cta { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18); color: #fff; padding: 7px 14px; border-radius: var(--r); font-size: 12px; font-weight: 700; }
+.topnav-cta:hover { background: rgba(255,255,255,.18); }
+
+/* HERO */
+.hero { background: linear-gradient(150deg, #14113B 0%, #241C6B 55%, #362E9E 100%); color: #fff; padding: 60px 0 52px; border-bottom: 3px solid var(--primary-lt); }
+.hero-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+.hero-tag { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.16); border-radius: 20px; padding: 4px 14px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.80); letter-spacing: .3px; margin-bottom: 18px; }
+.hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: #f0b429; }
+.hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1.35; margin-bottom: 16px; max-width: 760px; }
+.hero h1 em { color: #A5B4FC; font-style: normal; }
+.hero p { font-size: 15px; color: rgba(255,255,255,.72); line-height: 1.8; max-width: 660px; margin-bottom: 10px; }
+.hero-btns { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.hero-btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--primary-lt); color: #fff; border-radius: var(--r); font-size: 13px; font-weight: 700; transition: background .15s; }
+.hero-btn-primary:hover { background: #7c80f5; }
+.hero-btn-outline { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.20); color: rgba(255,255,255,.88); border-radius: var(--r); font-size: 13px; font-weight: 600; transition: background .15s; }
+.hero-btn-outline:hover { background: rgba(255,255,255,.14); }
+
+/* WIDE SECTION */
+.wide-section { max-width: 1160px; margin: 0 auto; padding: 52px 24px; }
+.wide-section.alt { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.wide-section.alt-inner { max-width: 1160px; margin: 0 auto; padding: 52px 24px; }
+.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); padding-bottom: 8px; border-bottom: 2px solid var(--primary); margin-bottom: 14px; display: inline-block; }
+.wide-h2 { font-size: 21px; font-weight: 800; margin-bottom: 8px; letter-spacing: -.4px; }
+.wide-sub { font-size: 13.5px; color: var(--sub); margin-bottom: 26px; line-height: 1.75; max-width: 760px; }
+
+/* DIFF CARDS */
+.diff-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.diff-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow-1); }
+.diff-num { width: 26px; height: 26px; border-radius: 50%; background: var(--primary-bg); color: var(--primary); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.diff-title { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+.diff-desc { font-size: 12px; color: var(--sub); line-height: 1.65; }
+
+/* FLOW */
+.flow { display: flex; flex-direction: column; gap: 0; margin-bottom: 8px; }
+.flow-item { display: flex; align-items: flex-start; gap: 16px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--border); border-bottom: none; position: relative; }
+.flow-item:first-child { border-radius: var(--r) var(--r) 0 0; }
+.flow-item:last-child { border-bottom: 1px solid var(--border); border-radius: 0 0 var(--r) var(--r); }
+.flow-item.highlight { background: var(--teal-bg); border-color: var(--teal); border-top: 2px solid var(--teal); border-bottom: 2px solid var(--teal); z-index: 1; }
+.flow-num { width: 30px; height: 30px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.flow-item.highlight .flow-num { background: var(--teal); }
+.flow-body { flex: 1; }
+.flow-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; flex-wrap: wrap; }
+.flow-title { font-size: 14px; font-weight: 800; }
+.flow-desc { font-size: 12.5px; color: var(--sub); line-height: 1.65; }
+.flow-arrow { text-align: center; font-size: 11px; color: var(--hint); padding: 2px 0; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.badge-teal   { background: var(--teal-bg); color: var(--teal-dk); }
+.badge-blue   { background: var(--primary-bg); color: var(--primary); }
+.badge-orange { background: var(--orange-bg); color: var(--orange); }
+.badge-green  { background: var(--green-bg); color: var(--green); }
+.badge-gray   { background: #EDEFF3; color: var(--sub); }
+
+/* RECOMPOSE COMPARE */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.compare-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; box-shadow: var(--shadow-1); }
+.compare-card.new { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal), var(--shadow-1); }
+.compare-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.compare-label { font-size: 12.5px; font-weight: 800; }
+.compare-desc { font-size: 12.5px; color: var(--sub); line-height: 1.75; }
+.compare-desc + .compare-desc { margin-top: 8px; }
+
+/* LIMITS */
+.limit-list { display: flex; flex-direction: column; gap: 10px; }
+.limit-item { display: flex; align-items: flex-start; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--orange); border-radius: var(--r); padding: 14px 16px; box-shadow: var(--shadow-1); }
+.limit-icon { color: var(--orange); flex-shrink: 0; margin-top: 1px; }
+.limit-text { font-size: 12.5px; color: var(--text2, var(--text)); line-height: 1.7; }
+.limit-text strong { font-weight: 700; }
+
+/* DOCS GRID */
+.docs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.doc-card { display: flex; align-items: flex-start; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; box-shadow: var(--shadow-1); transition: border-color .15s, transform .1s; }
+.doc-card:hover { border-color: var(--primary-lt); transform: translateY(-1px); }
+.doc-icon { width: 30px; height: 30px; border-radius: 7px; background: var(--primary-bg); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.doc-title { font-size: 12.5px; font-weight: 700; margin-bottom: 3px; }
+.doc-desc { font-size: 11.5px; color: var(--hint); line-height: 1.55; }
+
+/* PRINCIPLE STRIP */
+.principle-strip { background: var(--primary-bg); border: 1px solid var(--primary-bd); border-radius: var(--r); padding: 18px 20px; font-size: 12.5px; color: var(--text); line-height: 1.8; margin-bottom: 24px; }
+.principle-strip strong { color: var(--primary); }
+
+/* FOOTER */
+footer { background: var(--gov-header); color: rgba(255,255,255,.55); padding: 30px 0; }
+.footer-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: 11.5px; }
+.footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.footer-links a:hover { color: #fff; }
+
+@media (max-width: 860px) {
+  .diff-grid, .compare-grid, .docs-grid { grid-template-columns: 1fr; }
+  .topnav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="gov-bar">혼디넷(hondi.net) K-서비스 — <a href="https://hondi.net" target="_blank">hondi.net으로 돌아가기 ↗</a></div>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="#top" class="topnav-logo"><span class="topnav-logo-icon">K</span>K-Plan</a>
+    <div class="topnav-links">
+      <a href="#intro">소개</a>
+      <a href="#diff">무엇이 다른가</a>
+      <a href="#flow">처리 흐름</a>
+      <a href="#recompose">K-Recompose</a>
+      <a href="#limits">아직 없는 것</a>
+      <a href="#docs">문서</a>
+    </div>
+    <div class="topnav-right">
+      <div class="topnav-status"><span class="status-dot-amber"></span>설계 단계 · 실 서비스 미연동</div>
+      <a href="https://klaw.hondi.net" target="_blank" class="topnav-cta">K-Law 보기 ↗</a>
+    </div>
+  </div>
+</nav>
+
+<div id="top"></div>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag"><span class="hero-tag-dot"></span> 설계 문서 단계 — 실 서비스 백엔드 아직 미연동</div>
+    <h1>목표를 말하면, <em>그 요청이 최선의 경로인지부터</em><br>먼저 되짚어보는 AI입니다</h1>
+    <p>K-Plan은 사용자가 이루고 싶은 목표를 PDV(프라이빗 데이터 금고)와 종합해 최적의 방안을 도출하는 혼디넷의 계획 보조 AI입니다. 오늘 점심 메뉴부터 3년 안의 이직까지, 규모를 가리지 않고 같은 엔진으로 다룹니다.</p>
+    <p>다른 실행형 K-서비스와 달리 요청을 곧바로 수행하지 않고, 그 요청이 목표 달성의 최선 경로인지부터 평가합니다 — 그리고 계획이 확정된 뒤에도 끝나지 않습니다.</p>
+    <div class="hero-btns">
+      <a href="#flow" class="hero-btn-primary">전체 처리 흐름 보기</a>
+      <a href="https://hondi.net/prompts/k-plan_v1_1.md" target="_blank" class="hero-btn-outline">정본 문서(k-plan_v1_1.md) ↗</a>
+    </div>
+  </div>
+</div>
+
+<section class="wide-section" id="intro">
+  <div class="section-title">정체성</div>
+  <h2 class="wide-h2">국가기관·전문직을 대신하지 않습니다 — 경로를 검증합니다</h2>
+  <p class="wide-sub">K-Plan은 사용자를 대신해 무언가를 수행하는 역할이 아니라, 목표를 구체적인 경로로 분해하고 그 경로가 타당한지 검증하는 역할입니다. 최종 결정과 실행(발송·결제 등)은 항상 사람의 몫입니다.</p>
+  <div class="principle-strip">
+    가장 먼저 지키는 원칙은 <strong>의도의 합리성·타당성 평가</strong>입니다 — 물리적으로 불가능하거나 명백히 터무니없는 목표는 세부 계획(K-Compose)으로 들어가기 전, K-Intent 단계에서부터 차단합니다. 그다음 원칙은 <strong>사용자의 의도를 추측하거나 넘겨짚지 않는 것</strong>입니다 — 모호한 요청은 그럴듯한 해석 하나를 임의로 골라 진행하지 않고, 반드시 대화로 확증한 뒤에야 다음 단계로 넘어갑니다.
+  </div>
+</section>
+
+<div class="wide-section alt">
+  <div class="wide-section alt-inner" style="padding:52px 24px;" id="diff">
+    <div class="section-title">차별점</div>
+    <h2 class="wide-h2">다른 실행형 모듈(K-Business, K-Public 등)과 무엇이 다른가</h2>
+    <p class="wide-sub">K-Plan을 구분 짓는 핵심은 처리 흐름 자체가 아니라, 흐름에 들어가기 전과 도중에 개입하는 게이트입니다.</p>
+    <div class="diff-grid">
+      <div class="diff-card">
+        <div class="diff-num">1</div>
+        <div class="diff-title">요청을 곧바로 수행하지 않음</div>
+        <div class="diff-desc">사용자의 요청을 접수하면 바로 실행에 들어가는 대신, 그 요청이 목표 달성의 최선 경로인지부터 평가합니다(K-Compose). 더 나은 경로가 있으면 제시하되, 사용자가 원래 요청을 고수하면 그 결정을 존중해 지원합니다.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-num">2</div>
+        <div class="diff-title">의도를 넘겨짚지 않음</div>
+        <div class="diff-desc">모호하거나 여러 갈래로 해석되는 요청은 그럴듯한 해석 하나를 임의로 골라 진행하지 않습니다. 반드시 대화를 통해 확증한 뒤에야 다음 단계(K-Compose)로 넘어갑니다(K-Intent).</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-num">3</div>
+        <div class="diff-title">타당성부터 차단</div>
+        <div class="diff-desc">물리적으로 불가능하거나 명백히 터무니없는 목표는 세부 계획을 짜는 단계까지 갈 필요 없이 K-Intent 단계에서부터 걸러냅니다.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-num">4</div>
+        <div class="diff-title">플랜은 확정돼도 끝나지 않음</div>
+        <div class="diff-desc">실행이 여러 단계·여러 주에 걸쳐 진행되는 동안 들어오는 실제 결과를 다음 단계를 실행하기 전에 계속 되짚어, 아직 실행하지 않은 나머지 단계를 스스로 고쳐 씁니다(K-Recompose).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="wide-section" id="flow">
+  <div class="section-title">처리 흐름</div>
+  <h2 class="wide-h2">K-Intent → K-Compose → K-Execute → K-Recompose → K-Deliver → K-Report → 반추 → 경험의 공유</h2>
+  <p class="wide-sub">K-Plan은 별도의 파이프라인을 새로 만들지 않고, AC의 표준 5단계 오케스트레이션 체인을 그대로 차용합니다. K-Plan만의 차별점은 체인 자체가 아니라, 체인에 들어가기 전의 합리성·타당성 게이트와, K-Execute 도중 반복적으로 개입하는 K-Recompose, 그리고 K-Report 이후 자동으로 이어지는 반추·경험의 공유입니다.</p>
+
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-num">1</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">K-Intent — 목표 파싱 및 PDV 종합</span></div>
+        <div class="flow-desc">의도의 합리성·타당성부터 평가하고(최우선), 모호한 요청은 대화로 확증합니다. 한 문장짜리 목표를 구체적 하위 목표로 분해하고, PDV(일정·GDC 잔액·인맥·이동/소비 선호·과거 결정 패턴)를 근거로 대조합니다. PDV에 없는 정보를 추측으로 채우지 않습니다.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">2</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">K-Compose — 달성 경로 설계</span></div>
+        <div class="flow-desc">방안을 짜기 전에 목표가 주어진 조건(기간·예산·상대의 의사결정 구조) 안에서 실제로 달성 가능한지 먼저 평가합니다. 달성 가능성이 낮으면 이를 낙관적으로 포장하지 않고 명시적으로 알리며, "이 방법이 최선인가"를 재검토해 대안을 제시합니다. 최종 결정은 사용자의 몫입니다.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">3</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">K-Execute — 실행</span></div>
+        <div class="flow-desc">접촉 대상 특정 → 사전 커뮤니케이션(메일·공문) 초안 작성 → 회신 확인 후 세부 일정 확정 순서를 지킵니다. 날짜부터 먼저 확정하지 않습니다. 메일·공문의 실제 발송, 담당자 연락처 확정, 예산 집행의 최종 확정은 항상 사용자 본인이 합니다.</div>
+      </div>
+    </div>
+    <div class="flow-arrow">↓ 체크포인트 도달 시 강제 진입 ↓</div>
+    <div class="flow-item highlight" id="recompose">
+      <div class="flow-num">4</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">K-Recompose — 중간 재평가</span><span class="badge badge-teal">v1.1 신설(2026-09-02)</span></div>
+        <div class="flow-desc">K-Compose가 미리 지정한 체크포인트(회신 마감 시점, N주차 종료 등)에 도달하면 자동으로 트리거됩니다. 아직 실행되지 않은 나머지 단계만을 대상으로, 실제 결과를 근거 삼아 순서·시점·문구를 조정합니다. 이미 완료·확정된 단계는 다시 열지 않으며, 무엇을 왜 바꾸는지 사용자에게 명시적으로 보고합니다.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">5</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">K-Deliver — 결과 정리</span></div>
+        <div class="flow-desc">모든 하위 단계가 완료·보류로 종결됐을 때 1회 트리거됩니다. 원래 목표 대비 달성/부분 달성/미달성을 구분하고, 진행 중인 접촉과 종결된 접촉을 뒤섞지 않습니다.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">6</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">K-Report — 기록</span></div>
+        <div class="flow-desc">최종 결과를 PDV에 실행 이력으로 남깁니다. K-Recompose에서 있었던 조정 이력(무엇을 왜 바꿨는지)도 함께 기록해, 반추가 K-Compose의 최초 판단 정확도를 가늠하는 신호로 씁니다.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">7</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">반추(Retrospection)</span><span class="badge badge-gray">강제 · 선택 기능 아님</span></div>
+        <div class="flow-desc">계획과 실제 결과가 어긋난 지점의 원인을 계획 결함 / 실행 결함 / 외부 변수로 분류합니다. K-Recompose가 이 플랜 도중 몇 차례 개입했는지, 그 조정이 유효했는지도 분석 대상입니다. 결함을 숨기지 않고 요약 보고합니다.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">8</div>
+      <div class="flow-body">
+        <div class="flow-title-row"><span class="flow-title">경험의 공유 — 집단 학습 저장소</span></div>
+        <div class="flow-desc">반추에서 도출된 교훈이 개인 식별 정보를 제외하고 저장소에 남아 다른 사용자의 K-Plan도 참조할 수 있습니다. 고유명사는 상위 카테고리로 추상화되며(예: "제주대학교 모 학과" → "대학의 학과"), 저장된 교훈은 확정된 통계가 아니라 참고 자료로만 인용됩니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wide-section alt">
+  <div class="wide-section alt-inner" style="padding:52px 24px;">
+    <div class="section-title">K-Recompose 상세</div>
+    <h2 class="wide-h2">"계획 수립 1회 + 실행 1회"로 끝나는 도구가 아닙니다</h2>
+    <p class="wide-sub">기존 반추·경험의 공유는 플랜이 완전히 끝난 뒤에만 동작하고, 그 교훈도 나중의 별개의 미래 플랜에만 적용됐습니다. K-Recompose는 지금 진행 중인 바로 이 플랜의 아직 실행하지 않은 나머지 단계에, 실시간으로 개입합니다.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-head"><span class="compare-label">v1.0 — 메워지지 않았던 공백</span><span class="badge badge-gray">종료 후 · 별개 플랜</span></div>
+        <div class="compare-desc">여러 단계가 순차적으로 몇 주에 걸쳐 진행되는 플랜(예: 캠페인 몇 개 트랙을 순서대로 발송)은, 중간에 실제 결과가 들어와도 아직 실행하지 않은 나머지 단계를 스스로 고쳐 쓰는 경로가 없었습니다.</div>
+        <div class="compare-desc">사람이 결과를 확인하고 매번 수작업으로 재요청해야만 계획이 조정됐습니다.</div>
+      </div>
+      <div class="compare-card new">
+        <div class="compare-head"><span class="compare-label">v1.1 — K-Recompose</span><span class="badge badge-teal">진행 중 · 같은 플랜</span></div>
+        <div class="compare-desc">K-Compose 단계에서 미리 설계한 체크포인트에 도달하면 자동으로 트리거됩니다. 실제 회신율·응답 속도가 예상과 다르면, 그 차이를 근거로 남은 단계의 순서·시점·문구를 조정합니다.</div>
+        <div class="compare-desc">조정 결과 원래 순서를 유지하는 게 최선이라는 결론이 나올 수도 있습니다 — 매번 반드시 뭔가를 바꿔야 하는 것은 아닙니다.</div>
+      </div>
+    </div>
+
+    <div class="principle-strip">
+      <strong>반추와의 구분</strong> — 반추는 플랜이 끝난 뒤 "왜 계획과 실제가 어긋났는가"를 사후적으로 분류해 다른/미래의 플랜에 반영합니다. K-Recompose는 플랜이 진행되는 도중 "지금까지의 결과를 보면 남은 계획을 어떻게 바꿔야 하는가"를 판단해 바로 이 플랜의 나머지 부분에 반영합니다 — 시점(도중 vs 종료 후)과 적용 대상(같은 플랜의 잔여 단계 vs 별개의 미래 플랜)이 다릅니다. K-Recompose의 중간 결과 요약은 집단 학습 저장소로는 보내지 않습니다 — 플랜이 아직 끝나지 않았기 때문입니다.
+    </div>
+  </div>
+</div>
+
+<section class="wide-section" id="limits">
+  <div class="section-title">정직한 한계 고지</div>
+  <h2 class="wide-h2">아직 없는 것 — 추측으로 채우지 않습니다</h2>
+  <p class="wide-sub">혼디넷의 정확성과 정직성 원칙(U2)에 따라, 실제보다 더 된 것처럼 포장하지 않습니다. 확정된 통계처럼 보이는 수치는 근거가 없으면 아예 언급하지 않으며, "완전 자동화"나 "AI가 대신 처리" 같은 표현을 쓰지 않습니다 — 최종 결정과 실행은 항상 사람의 몫입니다.</p>
+  <div class="limit-list">
+    <div class="limit-item">
+      <span class="limit-icon">⚠</span>
+      <div class="limit-text"><strong>담당자 연락처 자동 확정</strong> — 상대 기관 담당자의 실제 연락처를 자동으로 조회·확정하는 기능은 없습니다. 공공데이터·PDV에 없으면 사용자가 직접 확인해야 합니다.</div>
+    </div>
+    <div class="limit-item">
+      <span class="limit-icon">⚠</span>
+      <div class="limit-text"><strong>이메일·공문 자동 발송</strong> — 초안 작성까지만 하며, 발송은 항상 사람이 합니다.</div>
+    </div>
+    <div class="limit-item">
+      <span class="limit-icon">⚠</span>
+      <div class="limit-text"><strong>항공편·숙소 등 자동 결제 확정</strong> — 검색·후보 제시까지만 하며, 결제는 사용자 승인이 필요합니다.</div>
+    </div>
+    <div class="limit-item">
+      <span class="limit-icon">⚠</span>
+      <div class="limit-text"><strong>상대방의 실제 의사결정 결과 예측</strong> — 성사 가능성에 대한 정성적 평가는 하되, 실제 회신 내용은 사용자가 받은 뒤에야 계획에 반영합니다.</div>
+    </div>
+    <div class="limit-item">
+      <span class="limit-icon">⚠</span>
+      <div class="limit-text"><strong>K-Recompose가 참조할 "실제 결과"의 자동 수집</strong> — K-Mail 등 실행 채널의 회신·발송 통계를 K-Plan이 스스로 조회해오는 연동은 아직 없습니다. 사용자가 회신 결과를 알려주거나, 실행 채널이 별도로 정리한 요약을 전달해야만 K-Recompose가 작동합니다.</div>
+    </div>
+  </div>
+</section>
+
+<div class="wide-section alt">
+  <div class="wide-section alt-inner" style="padding:52px 24px;" id="docs">
+    <div class="section-title">문서</div>
+    <h2 class="wide-h2">개발자·후속 담당자를 위한 기술 문서</h2>
+    <p class="wide-sub">이 사이트의 내용은 아래 정본 문서(k-plan_v1_1.md)를 기준으로 작성됐습니다. 정본이 개정되면 이 페이지도 함께 갱신해야 합니다.</p>
+    <div class="docs-grid">
+      <a class="doc-card" href="https://hondi.net/prompts/k-plan_v1_1.md" target="_blank">
+        <div class="doc-icon">◆</div>
+        <div>
+          <div class="doc-title">k-plan_v1_1.md — 정본</div>
+          <div class="doc-desc">K-Plan의 모든 원칙·단계·변경 이력이 담긴 시스템 프롬프트 원문. 이 사이트 문구의 기준 문서입니다.</div>
+        </div>
+      </a>
+      <a class="doc-card" href="https://hondi.net/docs/KPLAN_KMAIL_INTEGRATION_ARCHITECTURE_v1_0_20260902.md" target="_blank">
+        <div class="doc-icon">◆</div>
+        <div>
+          <div class="doc-title">K-Plan↔K-Mail 연동 아키텍처</div>
+          <div class="doc-desc">K-Recompose가 실제로 어떻게 동작하는지, K-Mail↔K-Plan 데이터 파이프라인 요약.</div>
+        </div>
+      </a>
+      <a class="doc-card" href="https://hondi.net/docs/HANDOFF_20260902.md" target="_blank">
+        <div class="doc-icon">◆</div>
+        <div>
+          <div class="doc-title">인수인계서(2026-09-02)</div>
+          <div class="doc-desc">무엇이 실제로 검증됐고 무엇이 아닌지 — 실사용자 대화 경로는 아직 미검증 상태입니다.</div>
+        </div>
+      </a>
+      <a class="doc-card" href="https://hondi.net/docs/KMAIL_KPLAN_PIPELINE_LIVE_TEST_INCIDENT_2026_09_02.md" target="_blank">
+        <div class="doc-icon">◆</div>
+        <div>
+          <div class="doc-title">라이브 테스트 사고 기록(2026-09-02)</div>
+          <div class="doc-desc">K-Mail↔K-Plan 파이프라인 배포 과정에서 겪은 사고 5건(secret 관리 등) 상세 기록.</div>
+        </div>
+      </a>
+      <a class="doc-card" href="https://hondi.net" target="_blank">
+        <div class="doc-icon">◆</div>
+        <div>
+          <div class="doc-title">hondi.net</div>
+          <div class="doc-desc">혼디넷 메인 사이트 — "서비스" 메뉴에서 다른 K-서비스도 함께 확인할 수 있습니다.</div>
+        </div>
+      </a>
+      <a class="doc-card" href="https://github.com/Openhash-Gopang/hondi" target="_blank">
+        <div class="doc-icon">◆</div>
+        <div>
+          <div class="doc-title">GitHub — Openhash-Gopang/hondi ↗</div>
+          <div class="doc-desc">혼디넷 메인 저장소. K-Plan 관련 문서와 코드가 모두 이곳에 있습니다.</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div>© 2026 혼디넷(hondi.net) · K-Plan · 팀 주피터</div>
+    <div class="footer-links">
+      <a href="https://hondi.net" target="_blank">hondi.net</a>
+      <a href="https://klaw.hondi.net" target="_blank">klaw.hondi.net</a>
+      <a href="https://github.com/Openhash-Gopang/plan" target="_blank">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
