@@ -126,14 +126,13 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
   <div class="kplan-login-box">
     <div class="kplan-login-header">
       <div class="kplan-login-logo">🧭</div>
-      <div class="kplan-login-title">K-Plan 로그인</div>
-      <div class="kplan-login-subtitle">계획 정련을 시작하려면 전화번호 인증이 필요합니다</div>
+      <div class="kplan-login-title">내 GDC 대시보드</div>
     </div>
     <div class="kplan-login-body">
-      <div class="kplan-login-desc">본인 확인 후 GDC 잔액에서 사용한 만큼만 청구됩니다.<br>가입된 전화번호를 입력해 주세요.</div>
+      <div class="kplan-login-desc">GDC 충전 시 사용한 전화번호로 본인 확인 후 잔액과 이용 내역을 확인할 수 있습니다.</div>
       <div id="kplan-login-step-phone">
         <div class="kplan-login-row">
-          <input type="tel" id="kplan-login-phone" placeholder="010-0000-0000" autocomplete="tel">
+          <input type="tel" id="kplan-login-phone" placeholder="전화번호 뒷 8자리" inputmode="numeric" maxlength="8" autocomplete="tel">
           <button type="button" id="kplan-login-send-btn" onclick="_kplanLoginSendOtp()">인증번호 받기</button>
         </div>
       </div>
