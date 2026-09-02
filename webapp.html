@@ -8,7 +8,17 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%233D4FC4%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-family%3D%22%27Pretendard%27%2C%27Malgun%20Gothic%27%2Csans-serif%22%20font-size%3D%2234%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3EP%3C/text%3E%3C/svg%3E">
 
 <!-- 고팡 공통 인증(지갑 세션) — desktop.html 등과 동일한 표준 로드 방식 -->
-<script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
+<!-- data-required="false" — 이 페이지의 실제 인증(과금 포함)은 별도의
+     전화번호 OTP 흐름(phone_verify_token)이 담당한다. 이 스크립트를
+     필수 모드로 두면, 로그인 세션 확인용 오프너 창 없이(직접 URL 방문
+     등) 페이지가 열렸을 때 hondi.net/auth/silent-auth.html과 무한
+     리다이렉트 루프에 빠진다 — silent-auth.html이 반환하는
+     ?gopang_token= 파라미터를 gopang-sso.js의 _tryGwpToken()이 기대하는
+     gwp_token과 이름이 달라 인식하지 못해 계속 재시도하는 것으로 보임
+     (플랫폼 공용 코드의 버그로 추정, 이 저장소 범위 밖이라 여기서는
+     건드리지 않음). optional 모드는 인증 실패 시 그냥 비로그인 상태로
+     통과하므로 이 루프 자체가 발생하지 않는다. -->
+<script type="module" src="https://hondi.net/auth/subsystem-auth.js" data-required="false"></script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
