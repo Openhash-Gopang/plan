@@ -71,7 +71,7 @@ main{max-width:760px;margin:0 auto;padding:28px 18px 80px}
 .card .sub{font-size:12px;color:var(--sub);margin-bottom:16px;line-height:1.7}
 label{display:block;font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:6px;margin-top:14px}
 label:first-of-type{margin-top:0}
-textarea{width:100%;min-height:90px;padding:11px 13px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13.5px;line-height:1.6;resize:vertical}
+textarea{width:100%;min-height:90px;padding:11px 13px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13.5px;line-height:1.6;resize:none;overflow:hidden}
 textarea:focus{outline:none;border-color:var(--pri-lt)}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:var(--r);font-size:13px;font-weight:700;border:none}
 .btn-primary{background:var(--pri);color:#fff}
@@ -280,6 +280,21 @@ async function _loadKPlanSP() {
   } catch(e) { console.warn('[K-Plan] 정본 문서 로드 실패 — 기본 지시문으로 폴백:', e.message); }
 }
 _loadKPlanSP();
+
+// ══════════════════════════════════════════════════════════════
+// 입력창 자동 높이 조절 — 입력량에 따라 늘어나거나 줄어든다.
+// min-height(CSS)는 그대로 두고, scrollHeight만큼 늘렸다가 입력 시마다
+// 다시 auto로 리셋해 줄어들 때도 반영되게 한다(안 그러면 글자를 지워도
+// 높이가 안 줄어듦).
+// ══════════════════════════════════════════════════════════════
+function _kplanAutoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+document.querySelectorAll('textarea').forEach(el => {
+  _kplanAutoResize(el);
+  el.addEventListener('input', () => _kplanAutoResize(el));
+});
 
 // ══════════════════════════════════════════════════════════════
 // 전화번호 로그인 오버레이 — klaw webapp.html의 동일 패턴 재사용
