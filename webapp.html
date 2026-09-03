@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
 <title>K-Plan — 계획 다듬기 및 실행 관리</title>
-<meta name="description" content="목표와 실행 방법을 입력하면 K-Plan이 미비점과 허점을 짚어 다듬은 계획서를 작성합니다. 각 단계 실행 결과를 입력하면 계획을 계속 갱신합니다(K-Recompose).">
+<meta name="description" content="목표와 실행 방법을 채팅으로 입력하면 K-Plan이 미비점과 허점을 짚어 다듬은 계획서를 작성합니다. 대화를 이어가며 계획을 계속 갱신합니다.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%233D4FC4%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-family%3D%22%27Pretendard%27%2C%27Malgun%20Gothic%27%2Csans-serif%22%20font-size%3D%2234%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3EP%3C/text%3E%3C/svg%3E">
 
 <!-- 고팡 공통 인증(지갑 세션) — desktop.html 등과 동일한 표준 로드 방식 -->
@@ -65,53 +65,40 @@ header .logo-icon{width:28px;height:28px;background:var(--pri-lt);border-radius:
 header a.back{margin-left:auto;font-size:12px;color:rgba(255,255,255,.7);text-decoration:none}
 header a.back:hover{color:#fff}
 
-main{max-width:760px;margin:0 auto;padding:28px 18px 80px}
+main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
 .card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh);padding:22px;margin-bottom:18px}
 .card h2{font-size:15px;font-weight:800;margin-bottom:6px}
 .card .sub{font-size:12px;color:var(--sub);margin-bottom:16px;line-height:1.7}
-label{display:block;font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:6px;margin-top:14px}
-label:first-of-type{margin-top:0}
-textarea{width:100%;min-height:90px;padding:11px 13px;border:1px solid var(--bdr);border-radius:var(--r);font-size:13.5px;line-height:1.6;resize:none;overflow:hidden}
-textarea:focus{outline:none;border-color:var(--pri-lt)}
+
 .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:var(--r);font-size:13px;font-weight:700;border:none}
 .btn-primary{background:var(--pri);color:#fff}
 .btn-primary:hover{background:#362E9E}
 .btn-primary:disabled{background:var(--hint);cursor:not-allowed}
-.btn-outline{background:var(--pri-bg);color:var(--pri);border:1px solid var(--pri-bd)}
-.btn-outline:hover{background:#e2e6fb}
 .btn-teal{background:var(--teal);color:#fff}
 .btn-teal:hover{background:#0b6f62}
-.btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn-row{display:flex;gap:10px;margin:14px 0;flex-wrap:wrap}
 
 .spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.12);border-top-color:var(--pri);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);padding:14px 0}
-
-.plan-output{border:1px solid var(--bdr);border-radius:var(--r);padding:18px 20px;background:#FAFBFF;font-size:13.5px;line-height:1.85;max-height:640px;overflow-y:auto}
-.plan-output h1,.plan-output h2,.plan-output h3{margin:16px 0 8px;font-weight:800;color:var(--txt)}
-.plan-output h1{font-size:16px}.plan-output h2{font-size:14.5px}.plan-output h3{font-size:13.5px}
-.plan-output p{margin-bottom:10px}
-.plan-output ul,.plan-output ol{margin:0 0 10px 20px}
-.plan-output li{margin-bottom:4px}
-.plan-output strong{color:var(--pri)}
-.plan-output code{font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;background:var(--pri-bg);padding:1px 5px;border-radius:4px}
-
-.plan-id-box{display:flex;align-items:center;gap:10px;background:var(--teal-bg);border:1px solid #B7E4DC;border-radius:var(--r);padding:12px 16px;margin-top:14px;font-size:12.5px}
-.plan-id-box code{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:#0B6F62;font-size:13px}
-.plan-id-copy{margin-left:auto;font-size:11px;color:var(--teal);cursor:pointer;text-decoration:underline;flex-shrink:0}
+.loading-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);padding:10px 2px}
 
 .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700}
 .badge-active{background:var(--gbg);color:var(--grn)}
 .badge-completed{background:#EDEFF3;color:var(--sub)}
 .badge-draft{background:var(--obg);color:var(--org)}
 .badge-abandoned{background:var(--rbg);color:var(--red)}
+.badge-final{background:var(--teal-bg);color:#0B6F62}
 
-.plan-list-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .12s}
+.plan-id-box{display:flex;align-items:center;gap:10px;background:var(--teal-bg);border:1px solid #B7E4DC;border-radius:var(--r);padding:12px 16px;margin:12px 0;font-size:12.5px}
+.plan-id-box code{font-family:'SFMono-Regular',Consolas,monospace;font-weight:700;color:#0B6F62;font-size:13px}
+.plan-id-copy{margin-left:auto;font-size:11px;color:var(--teal);cursor:pointer;text-decoration:underline;flex-shrink:0}
+
+.plan-list-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .12s;background:var(--sur)}
 .plan-list-item:hover{border-color:var(--pri-lt)}
 .plan-list-item .pli-title{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .plan-list-item .pli-meta{font-size:11px;color:var(--hint);flex-shrink:0}
 
-.errbox{background:var(--rbg);border:1px solid #F5B5B0;color:var(--red);border-radius:var(--r);padding:12px 15px;font-size:12.5px;margin-top:12px}
+.errbox{background:var(--rbg);border:1px solid #F5B5B0;color:var(--red);border-radius:var(--r);padding:12px 15px;font-size:12.5px;margin:10px 0}
 .hint{font-size:11.5px;color:var(--hint);margin-top:8px;line-height:1.6}
 
 .tabbar{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--bdr)}
@@ -121,33 +108,52 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
 .tab-panel.active{display:block}
 
 /* ══════════════════════════════════════════════════════════════
-   DeepSeek 피드백 채팅 — 사용자와 deepseek flash 간의 대화 채널.
-   입력창 양식은 Claude 입력 필드와 동일(첨부·음성입력·빨간 배경
-   화살표 전송 버튼). K-Plan SP가 시스템 메시지로 들어간다는 점만
-   deepseek 자체 chat 사이트와 다르다(주피터 지시, 2026-09-03).
+   Claude 대화창 스타일 채팅 UI — 사용자 입력 필드와 deepseek의 답변만
+   보여주는 단순한 화면. 새 계획을 만들 때와, 저장된 플랜에 피드백을
+   이어갈 때 모두 이 하나의 컴포넌트를 재사용한다(주피터 지시,
+   2026-09-03 — "Claude 대화 창처럼, 사용자 입력 필드와 deepseek의
+   답변만 표시").
    ══════════════════════════════════════════════════════════════ */
-.fb-wrap{margin-top:20px;padding-top:18px;border-top:1px solid var(--bdr)}
-.fb-wrap-title{font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:10px}
-.fb-thread{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;max-height:280px;overflow-y:auto}
-.fb-thread:empty{display:none;margin-bottom:0}
-.fb-bubble{max-width:88%;padding:9px 13px;border-radius:14px;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
-.fb-bubble-user{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:4px}
-.fb-bubble-assistant{align-self:flex-start;background:var(--pri-bg);color:var(--txt);border-bottom-left-radius:4px}
-.fb-attachments{display:flex;flex-wrap:wrap}
-.fb-attachments:empty{display:none}
-.fb-chip{display:inline-flex;align-items:center;gap:5px;background:var(--pri-bg);border:1px solid var(--pri-bd);color:var(--pri);font-size:11px;font-weight:600;padding:4px 8px;border-radius:8px;margin:0 6px 6px 0}
-.fb-chip-x{cursor:pointer;opacity:.7;font-size:10px}
-.fb-chip-x:hover{opacity:1}
-.fb-inputbar{display:flex;align-items:flex-end;gap:4px;background:#fff;border:1.5px solid var(--bdr);border-radius:24px;padding:6px 8px 6px 12px;transition:border-color .12s}
-.fb-inputbar:focus-within{border-color:var(--pri-lt)}
-.fb-icon-btn{flex-shrink:0;width:32px;height:32px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--hint);transition:background .12s,color .12s}
-.fb-icon-btn:hover{background:var(--bg);color:var(--sub)}
-.fb-icon-btn.fb-mic-active{color:var(--red);background:var(--rbg)}
-.fb-textarea{flex:1;min-width:0;border:none;outline:none;resize:none;font-size:13.5px;line-height:1.5;max-height:120px;padding:7px 2px;background:transparent;overflow-y:auto}
-.fb-send-btn{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:none;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .12s,transform .08s}
-.fb-send-btn:disabled{opacity:.35;cursor:not-allowed}
-.fb-send-btn:not(:disabled):hover{transform:scale(1.06)}
-.fb-loading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);margin-top:10px}
+.chat-landing{text-align:center;padding:64px 16px 8px}
+.chat-landing-emoji{font-size:32px;margin-bottom:14px}
+.chat-landing-title{font-size:23px;font-weight:800;color:var(--txt);margin-bottom:30px}
+
+.chat-thread{display:flex;flex-direction:column;gap:14px;margin-bottom:4px}
+.chat-thread:empty{margin-bottom:0}
+.chat-bubble-row{display:flex;flex-direction:column}
+.chat-bubble-row.user{align-items:flex-end}
+.chat-bubble-row.assistant{align-items:flex-start}
+.chat-bubble{max-width:100%;font-size:13.5px;line-height:1.8}
+.chat-bubble-row.user .chat-bubble{background:var(--pri);color:#fff;padding:10px 15px;border-radius:16px;border-bottom-right-radius:4px;white-space:pre-wrap;word-break:break-word;max-width:88%}
+.chat-bubble-row.assistant .chat-bubble{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;width:100%}
+.chat-bubble-row.assistant .chat-bubble h1,.chat-bubble-row.assistant .chat-bubble h2,.chat-bubble-row.assistant .chat-bubble h3{margin:14px 0 7px;font-weight:800;color:var(--txt)}
+.chat-bubble-row.assistant .chat-bubble h1{font-size:16px}
+.chat-bubble-row.assistant .chat-bubble h2{font-size:14.5px}
+.chat-bubble-row.assistant .chat-bubble h3{font-size:13.5px}
+.chat-bubble-row.assistant .chat-bubble p{margin-bottom:10px}
+.chat-bubble-row.assistant .chat-bubble ul,.chat-bubble-row.assistant .chat-bubble ol{margin:0 0 10px 20px}
+.chat-bubble-row.assistant .chat-bubble li{margin-bottom:4px}
+.chat-bubble-row.assistant .chat-bubble strong{color:var(--pri)}
+.chat-bubble-row.assistant .chat-bubble code{font-family:'SFMono-Regular',Consolas,monospace;font-size:12px;background:var(--pri-bg);padding:1px 5px;border-radius:4px}
+.chat-bubble-badge{margin-bottom:10px}
+
+.chat-attachments{display:flex;flex-wrap:wrap;margin-top:10px}
+.chat-attachments:empty{display:none;margin-top:0}
+.chat-chip{display:inline-flex;align-items:center;gap:5px;background:var(--pri-bg);border:1px solid var(--pri-bd);color:var(--pri);font-size:11px;font-weight:600;padding:4px 8px;border-radius:8px;margin:0 6px 6px 0}
+.chat-chip-x{cursor:pointer;opacity:.7;font-size:10px}
+.chat-chip-x:hover{opacity:1}
+
+.chat-inputbar{display:flex;align-items:flex-end;gap:4px;background:#fff;border:1.5px solid var(--bdr);border-radius:24px;padding:7px 9px 7px 13px;box-shadow:var(--sh);transition:border-color .12s}
+.chat-inputbar:focus-within{border-color:var(--pri-lt)}
+.chat-icon-btn{flex-shrink:0;width:32px;height:32px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--hint);transition:background .12s,color .12s}
+.chat-icon-btn:hover{background:var(--bg);color:var(--sub)}
+.chat-icon-btn.chat-mic-active{color:var(--red);background:var(--rbg)}
+.chat-textarea{flex:1;min-width:0;border:none;outline:none;resize:none;font-size:14px;line-height:1.5;max-height:140px;padding:8px 4px;background:transparent;overflow-y:auto}
+.chat-send-btn{flex-shrink:0;width:36px;height:36px;border-radius:50%;border:none;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .12s,transform .08s}
+.chat-send-btn:disabled{opacity:.35;cursor:not-allowed}
+.chat-send-btn:not(:disabled):hover{transform:scale(1.06)}
+
+.chat-composer{position:sticky;bottom:14px;background:var(--bg);padding-top:10px}
 </style>
 </head>
 <body>
@@ -204,62 +210,56 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
     <button id="tab-btn-mine" onclick="_switchTab('mine')">내 플랜</button>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════
+       새 계획 만들기 — Claude 대화창과 동일한 형태.
+       처음에는 인사말 + 중앙 입력창만 보이고(랜딩), 첫 메시지를
+       보내면 대화창(사용자 입력 + deepseek 답변)만 이어진다.
+       ══════════════════════════════════════════════════════════ -->
   <div id="tab-new" class="tab-panel active">
-    <div class="card">
-      <h2>목표와 실행 방법을 입력하세요</h2>
-      <div class="sub">K-Plan이 미비점과 허점을 짚어 다듬은 계획서를 작성합니다. 요청을 곧바로 승인하지 않고, 이 방법이 목표 달성의 최선 경로인지부터 검토합니다.</div>
+    <div class="chat-landing" id="kplan-new-landing">
+      <div class="chat-landing-emoji">🧭</div>
+      <div class="chat-landing-title">어떤 계획을 세워볼까요?</div>
+    </div>
 
-      <label for="kplan-goal">목적·목표</label>
-      <textarea id="kplan-goal" placeholder="예: 3년 안에 지금 회사에서 시니어로 승진하고 싶다"></textarea>
+    <div class="chat-thread" id="kplan-new-thread"></div>
 
-      <label for="kplan-method">지금 생각하고 있는 실행 방법</label>
-      <textarea id="kplan-method" placeholder="예: 매주 야근을 자원하고, 팀장에게 분기마다 성과를 어필하려고 한다"></textarea>
+    <div id="kplan-new-loading" class="loading-row" style="display:none"><span class="spinner"></span><span id="kplan-new-loading-text">K-Plan이 빠르게 초안을 검토하는 중입니다…</span></div>
+    <div class="errbox" id="kplan-new-err" style="display:none"></div>
 
-      <div class="btn-row">
-        <button class="btn btn-primary" id="kplan-submit-btn" onclick="_kplanSubmitNew()">계획 다듬기</button>
+    <div class="btn-row" id="kplan-new-final-row" style="display:none">
+      <button class="btn btn-primary" id="kplan-new-final-btn" onclick="_kplanChatFinalReview('new')">최종 검토 및 최종 계획서 작성</button>
+    </div>
+    <div class="hint" id="kplan-new-final-hint" style="display:none">정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다.</div>
+
+    <div class="btn-row" id="kplan-new-save-row" style="display:none">
+      <button class="btn btn-teal" onclick="_kplanChatSavePlan()">이 계획 저장하기</button>
+    </div>
+    <div id="kplan-new-saved-box" style="display:none"></div>
+
+    <div class="chat-composer">
+      <div class="chat-attachments" id="kplan-new-attachments"></div>
+      <div class="chat-inputbar">
+        <button type="button" class="chat-icon-btn" id="kplan-new-attach-btn" title="파일 첨부">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <input type="file" id="kplan-new-file" style="display:none" multiple>
+        <textarea id="kplan-new-input" class="chat-textarea" rows="1" placeholder="예: 3년 안에 지금 회사에서 시니어로 승진하고 싶다. 매주 야근을 자원하고 팀장에게 분기마다 성과를 어필하려고 한다"></textarea>
+        <button type="button" class="chat-icon-btn" id="kplan-new-mic-btn" title="음성 입력">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button type="button" class="chat-send-btn" id="kplan-new-send-btn" title="전송" disabled onclick="_kplanChatSend('new')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        </button>
       </div>
       <div class="hint">베타 기간 중 하루 생성 한도가 있습니다. 처음 다듬을 때는 실제 DeepSeek 모델 호출 비용의 일부가 GDC 잔액에서 청구됩니다.</div>
     </div>
-
-    <div class="card" id="kplan-result-card" style="display:none">
-      <h2>다듬은 계획서</h2>
-      <div id="kplan-result-loading" class="loading-row" style="display:none"><span class="spinner"></span><span id="kplan-result-loading-text">K-Plan이 빠르게 초안을 검토하는 중입니다…</span></div>
-      <div id="kplan-result-output" class="plan-output" style="display:none"></div>
-      <div id="kplan-result-err" style="display:none"></div>
-      <div class="btn-row" id="kplan-final-review-row" style="display:none">
-        <button class="btn btn-primary" id="kplan-final-review-btn" onclick="_kplanFinalReview()">최종 검토 및 최종 계획서 작성</button>
-      </div>
-      <div class="hint" id="kplan-final-review-hint" style="display:none">정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다.</div>
-      <div class="btn-row" id="kplan-save-row" style="display:none">
-        <button class="btn btn-teal" onclick="_kplanSavePlan()">이 계획 저장하기</button>
-      </div>
-      <div id="kplan-saved-box" style="display:none"></div>
-
-      <div class="fb-wrap" id="kplan-fb-new-wrap" style="display:none">
-        <div class="fb-wrap-title">💬 DeepSeek에게 피드백하기 — 대화를 이어가며 보고서를 계속 다듬을 수 있습니다</div>
-        <div class="fb-thread" id="kplan-fb-new-thread"></div>
-        <div class="fb-attachments" id="kplan-fb-new-attachments"></div>
-        <div class="fb-inputbar">
-          <button type="button" class="fb-icon-btn" id="kplan-fb-new-attach-btn" title="파일 첨부">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-          </button>
-          <input type="file" id="kplan-fb-new-file" style="display:none" multiple>
-          <textarea id="kplan-fb-new-input" class="fb-textarea" rows="1" placeholder="다듬은 계획서에 대해 피드백을 입력하세요…"></textarea>
-          <button type="button" class="fb-icon-btn" id="kplan-fb-new-mic-btn" title="음성 입력">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          </button>
-          <button type="button" class="fb-send-btn" id="kplan-fb-new-send-btn" title="전송" disabled onclick="_kplanFeedbackSend('new')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-          </button>
-        </div>
-        <div class="fb-loading" id="kplan-fb-new-loading" style="display:none"><span class="spinner"></span>DeepSeek이 피드백을 반영해 보고서를 갱신하는 중입니다…</div>
-        <div class="errbox" id="kplan-fb-new-err" style="display:none"></div>
-      </div>
-    </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════
+       내 플랜 — 목록은 그대로, 상세는 동일한 채팅 UI 재사용.
+       ══════════════════════════════════════════════════════════ -->
   <div id="tab-mine" class="tab-panel">
-    <div class="card">
+    <div class="card" id="kplan-list-card">
       <h2>저장된 내 플랜</h2>
       <div class="sub">plan_id를 K-Mail과의 대화에서 언급하면, 그 캠페인의 회신 결과가 도착했을 때 K-Recompose가 자동으로 이 플랜을 재검토합니다.</div>
       <div id="kplan-list-loading" class="loading-row"><span class="spinner"></span>불러오는 중…</div>
@@ -267,42 +267,39 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
       <div id="kplan-list-items"></div>
     </div>
 
-    <div class="card" id="kplan-detail-card" style="display:none">
-      <h2 id="kplan-detail-title">플랜 상세</h2>
-      <div class="sub"><span id="kplan-detail-status" class="badge badge-active">진행 중</span> · 체크포인트 <span id="kplan-detail-checkpoints">0</span>회 · plan_id: <code id="kplan-detail-planid" style="font-family:'SFMono-Regular',Consolas,monospace"></code></div>
-      <div id="kplan-detail-output" class="plan-output"></div>
-
-      <label for="kplan-checkpoint-input" style="margin-top:20px">이 단계까지의 실행 결과를 입력하세요</label>
-      <textarea id="kplan-checkpoint-input" placeholder="예: 이번 분기 성과 어필까지는 계획대로 했는데, 팀장 반응이 예상보다 미온적이었다"></textarea>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="kplan-recompose-btn" onclick="_kplanRecompose()">실행 결과 반영해 계획 다시 다듬기</button>
+    <div id="kplan-detail-card" style="display:none">
+      <div class="card" style="margin-bottom:14px">
+        <h2 id="kplan-detail-title">플랜 상세</h2>
+        <div class="sub"><span id="kplan-detail-status" class="badge badge-active">진행 중</span> · 체크포인트 <span id="kplan-detail-checkpoints">0</span>회 · plan_id: <code id="kplan-detail-planid" style="font-family:'SFMono-Regular',Consolas,monospace"></code></div>
+        <a onclick="_kplanBackToList()" style="font-size:12px;color:var(--pri);cursor:pointer;text-decoration:underline">← 목록으로</a>
       </div>
-      <div id="kplan-recompose-loading" class="loading-row" style="display:none"><span class="spinner"></span><span id="kplan-recompose-loading-text">K-Recompose가 빠르게 초안을 검토하는 중입니다…</span></div>
-      <div class="btn-row" id="kplan-recompose-final-row" style="display:none">
-        <button class="btn btn-primary" id="kplan-recompose-final-btn" onclick="_kplanRecomposeFinalReview()">최종 검토 및 최종 계획서 작성</button>
-      </div>
-      <div class="hint" id="kplan-recompose-final-hint" style="display:none">정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다.</div>
-      <div id="kplan-recompose-err" style="display:none"></div>
 
-      <div class="fb-wrap" id="kplan-fb-detail-wrap" style="display:none">
-        <div class="fb-wrap-title">💬 DeepSeek에게 피드백하기 — 대화를 이어가며 보고서를 계속 다듬을 수 있습니다</div>
-        <div class="fb-thread" id="kplan-fb-detail-thread"></div>
-        <div class="fb-attachments" id="kplan-fb-detail-attachments"></div>
-        <div class="fb-inputbar">
-          <button type="button" class="fb-icon-btn" id="kplan-fb-detail-attach-btn" title="파일 첨부">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      <div class="chat-thread" id="kplan-mine-thread"></div>
+
+      <div id="kplan-mine-loading" class="loading-row" style="display:none"><span class="spinner"></span><span id="kplan-mine-loading-text">K-Recompose가 빠르게 초안을 검토하는 중입니다…</span></div>
+      <div class="errbox" id="kplan-mine-err" style="display:none"></div>
+
+      <div class="btn-row" id="kplan-mine-final-row" style="display:none">
+        <button class="btn btn-primary" id="kplan-mine-final-btn" onclick="_kplanChatFinalReview('mine')">최종 검토 및 최종 계획서 작성</button>
+      </div>
+      <div class="hint" id="kplan-mine-final-hint" style="display:none">정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다.</div>
+
+      <div class="chat-composer">
+        <div class="chat-attachments" id="kplan-mine-attachments"></div>
+        <div class="chat-inputbar">
+          <button type="button" class="chat-icon-btn" id="kplan-mine-attach-btn" title="파일 첨부">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
-          <input type="file" id="kplan-fb-detail-file" style="display:none" multiple>
-          <textarea id="kplan-fb-detail-input" class="fb-textarea" rows="1" placeholder="다듬은 계획서에 대해 피드백을 입력하세요…"></textarea>
-          <button type="button" class="fb-icon-btn" id="kplan-fb-detail-mic-btn" title="음성 입력">
+          <input type="file" id="kplan-mine-file" style="display:none" multiple>
+          <textarea id="kplan-mine-input" class="chat-textarea" rows="1" placeholder="이 단계까지의 실행 결과나 피드백을 입력하세요…"></textarea>
+          <button type="button" class="chat-icon-btn" id="kplan-mine-mic-btn" title="음성 입력">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
           </button>
-          <button type="button" class="fb-send-btn" id="kplan-fb-detail-send-btn" title="전송" disabled onclick="_kplanFeedbackSend('detail')">
+          <button type="button" class="chat-send-btn" id="kplan-mine-send-btn" title="전송" disabled onclick="_kplanChatSend('mine')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
           </button>
         </div>
-        <div class="fb-loading" id="kplan-fb-detail-loading" style="display:none"><span class="spinner"></span>DeepSeek이 피드백을 반영해 보고서를 갱신하는 중입니다…</div>
-        <div class="errbox" id="kplan-fb-detail-err" style="display:none"></div>
+        <div class="hint">실행 결과나 피드백을 입력하면 K-Recompose가 flash로 빠르게 초안을 반영합니다. "최종 검토"를 누르면 pro가 다듬어 자동으로 체크포인트에 저장합니다.</div>
       </div>
     </div>
   </div>
@@ -317,7 +314,7 @@ const _KPLAN_SP_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// 아주 단순한 마크다운→HTML 변환(제목/굵게/리스트/문단) — 다듬은 계획서
+// 아주 단순한 마크다운→HTML 변환(제목/굵게/리스트/문단) — deepseek 답변
 // 렌더링용. 전용 라이브러리를 새로 붙이지 않고 klaw 저장소에도 없는
 // 가벼운 자체 구현으로 충분한 범위만 처리한다.
 function mdToHtml(md) {
@@ -362,18 +359,11 @@ _loadKPlanSP();
 
 // ══════════════════════════════════════════════════════════════
 // 입력창 자동 높이 조절 — 입력량에 따라 늘어나거나 줄어든다.
-// min-height(CSS)는 그대로 두고, scrollHeight만큼 늘렸다가 입력 시마다
-// 다시 auto로 리셋해 줄어들 때도 반영되게 한다(안 그러면 글자를 지워도
-// 높이가 안 줄어듦).
 // ══════════════════════════════════════════════════════════════
 function _kplanAutoResize(el) {
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
 }
-document.querySelectorAll('textarea').forEach(el => {
-  _kplanAutoResize(el);
-  el.addEventListener('input', () => _kplanAutoResize(el));
-});
 
 // ══════════════════════════════════════════════════════════════
 // 전화번호 로그인 오버레이 — klaw webapp.html의 동일 패턴 재사용
@@ -398,12 +388,9 @@ function _kplanLoginResetPhoneStep() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// device-link(sign_request) 로그인 — 2026-09-03 신설
+// device-link(sign_request) 로그인
 // SMS 없이 이미 로그인된 폰에 웹푸시로 승인 요청을 보내고, 폰이 스스로
-// 서명해 보내면 서버가 검증 후 phone_verify_token을 발급한다(형식은
-// 기존 OTP 토큰과 동일 — 아래 downstream 로직은 한 줄도 안 바뀐다).
-// PC에서 코드를 입력하는 단계가 없다 — 폰 쪽(device-link-approve.html)이
-// 알아서 code를 서버에 제출하고 서명까지 마친다. PC는 오직 poll만 한다.
+// 서명해 보내면 서버가 검증 후 phone_verify_token을 발급한다.
 // ══════════════════════════════════════════════════════════════
 let _kplanDevlinkPollTimer = null;
 let _kplanDevlinkSessionId = null;
@@ -416,9 +403,6 @@ function _kplanDevlinkStopPolling() {
   document.removeEventListener('visibilitychange', _kplanDevlinkOnVisibility);
 }
 
-// 백그라운드 탭에서는 브라우저가 setInterval을 크게 늦춘다 — 사용자가
-// 폰을 확인하러 갔다 돌아오는 순간(탭 포커스 복귀) 즉시 한 번 더 poll해서
-// 체감 지연을 없앤다(device-link.html의 동일 대응 재사용).
 function _kplanDevlinkOnVisibility() {
   if (!document.hidden && _kplanDevlinkPollTimer) _kplanDevlinkPollOnce();
 }
@@ -538,9 +522,6 @@ async function _kplanLoginVerifyOtp() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok || !data.phone_verify_token) throw new Error(data.message || '인증번호가 일치하지 않습니다.');
 
-    // klaw와 동일하게, OTP 인증 성공만으로 끝내지 않고 이 번호로 등록된
-    // 고팡 프로필이 실제로 있는지 미리 확인한다(PROFILE_NOT_FOUND를
-    // 나중에야 만나 오버레이가 다시 뜨지 않는 상태에 갇히는 것 방지).
     const balRes = await fetch(PROXY + '/user/gdc-balance', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone_verify_token: data.phone_verify_token }),
@@ -620,142 +601,294 @@ function _switchTab(name) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// 새 계획 다듬기
+// Claude 대화창 스타일 채팅 컨트롤러 — "새 계획 만들기"와 "내 플랜"
+// 상세 화면이 동일한 로직을 공유한다. 사용자 입력 필드와 deepseek의
+// 답변만 보여준다: 첨부(＋)·음성입력(🎤)·빨간 배경 화살표 전송 버튼.
+// K-Plan SP가 시스템 메시지로 들어간다는 점만 deepseek 자체 chat
+// 사이트와 다르다.
 // ══════════════════════════════════════════════════════════════
-let _kplanCurrentMessages = [];
-let _kplanCurrentGoal = '';
-let _kplanCurrentRefinedMd = '';
-let _kplanSavedPlanId = null;
+const _kplanChat = {
+  new:  { messages: [], attachments: [], recognizing: false, recognition: null,
+          pendingFinalBase: null, pendingFinalDraft: '', goal: '', planId: null },
+  mine: { messages: [], attachments: [], recognizing: false, recognition: null,
+          pendingFinalBase: null, pendingFinalDraft: '', goal: '', planId: null },
+};
 
-// pro 최종 검토 단계로 넘길 때 필요한 상태 — 사용자가 버튼을 눌러야만
-// pro를 호출하므로(비용·시간이 큰 단계, 주피터 지시), 그때까지 여기에
-// 잠깐 들고 있는다.
-let _kplanPendingComposeMessages = null;
-let _kplanPendingComposeGoal = '';
-let _kplanPendingComposeDraft = '';
+function _kplanChatInit(prefix) {
+  const input     = document.getElementById(`kplan-${prefix}-input`);
+  const fileInput = document.getElementById(`kplan-${prefix}-file`);
+  const attachBtn = document.getElementById(`kplan-${prefix}-attach-btn`);
+  const micBtn    = document.getElementById(`kplan-${prefix}-mic-btn`);
 
-async function _kplanSubmitNew() {
-  const goal = document.getElementById('kplan-goal').value.trim();
-  const method = document.getElementById('kplan-method').value.trim();
-  if (!goal) { alert('목적·목표를 입력해 주세요.'); return; }
+  _kplanAutoResize(input);
+  input.addEventListener('input', () => { _kplanAutoResize(input); _kplanChatUpdateSendState(prefix); });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _kplanChatSend(prefix); }
+  });
+  attachBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => _kplanChatHandleFiles(prefix, e.target.files));
+  micBtn.addEventListener('click', () => _kplanChatToggleMic(prefix));
+
+  _kplanChatUpdateSendState(prefix);
+}
+
+function _kplanChatUpdateSendState(prefix) {
+  const input = document.getElementById(`kplan-${prefix}-input`);
+  const sendBtn = document.getElementById(`kplan-${prefix}-send-btn`);
+  const st = _kplanChat[prefix];
+  sendBtn.disabled = !(input.value.trim() || st.attachments.length);
+}
+
+async function _kplanChatHandleFiles(prefix, fileList) {
+  const st = _kplanChat[prefix];
+  const TEXTY = /^(text\/|application\/json|application\/xml)/;
+  const MAX_CHARS = 6000;
+  for (const file of Array.from(fileList || [])) {
+    const item = { name: file.name, content: null, note: '' };
+    if (TEXTY.test(file.type) || /\.(md|txt|csv|json|log)$/i.test(file.name)) {
+      try {
+        const text = await file.text();
+        item.content = text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) + '\n…(이하 생략)' : text;
+      } catch (e) { item.note = '(읽기 실패)'; }
+    } else {
+      item.note = '(텍스트로 변환할 수 없어 파일명만 전달됩니다)';
+    }
+    st.attachments.push(item);
+  }
+  document.getElementById(`kplan-${prefix}-file`).value = '';
+  _kplanChatRenderAttachments(prefix);
+  _kplanChatUpdateSendState(prefix);
+}
+
+function _kplanChatRenderAttachments(prefix) {
+  const st = _kplanChat[prefix];
+  const box = document.getElementById(`kplan-${prefix}-attachments`);
+  box.innerHTML = '';
+  st.attachments.forEach((a, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'chat-chip';
+    chip.innerHTML = `📎 ${escHtml(a.name)} <span class="chat-chip-x">✕</span>`;
+    chip.querySelector('.chat-chip-x').onclick = () => {
+      st.attachments.splice(i, 1);
+      _kplanChatRenderAttachments(prefix);
+      _kplanChatUpdateSendState(prefix);
+    };
+    box.appendChild(chip);
+  });
+}
+
+function _kplanChatToggleMic(prefix) {
+  const st = _kplanChat[prefix];
+  const micBtn = document.getElementById(`kplan-${prefix}-mic-btn`);
+  const input = document.getElementById(`kplan-${prefix}-input`);
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('이 브라우저는 음성 입력을 지원하지 않습니다.'); return; }
+  if (st.recognizing) { st.recognition && st.recognition.stop(); return; }
+  const rec = new SR();
+  rec.lang = 'ko-KR'; rec.interimResults = false; rec.maxAlternatives = 1;
+  rec.onstart = () => { st.recognizing = true; micBtn.classList.add('chat-mic-active'); };
+  rec.onerror = () => { st.recognizing = false; micBtn.classList.remove('chat-mic-active'); };
+  rec.onend   = () => { st.recognizing = false; micBtn.classList.remove('chat-mic-active'); };
+  rec.onresult = (e) => {
+    const text = Array.from(e.results).map(r => r[0].transcript).join(' ');
+    input.value = (input.value ? input.value + ' ' : '') + text;
+    _kplanAutoResize(input);
+    _kplanChatUpdateSendState(prefix);
+  };
+  st.recognition = rec;
+  rec.start();
+}
+
+function _kplanChatAppendBubble(prefix, role, opts) {
+  const thread = document.getElementById(`kplan-${prefix}-thread`);
+  const row = document.createElement('div');
+  row.className = 'chat-bubble-row ' + role;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  if (role === 'user') {
+    bubble.textContent = opts.text;
+  } else {
+    if (opts.badge) bubble.innerHTML = `<span class="badge ${opts.badge.cls} chat-bubble-badge">${opts.badge.label}</span>`;
+    bubble.innerHTML += mdToHtml(opts.md || '');
+  }
+  row.appendChild(bubble);
+  thread.appendChild(row);
+  row.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return bubble;
+}
+
+function _kplanChatReset(prefix) {
+  const st = _kplanChat[prefix];
+  st.messages = []; st.attachments = []; st.pendingFinalBase = null; st.pendingFinalDraft = ''; st.goal = ''; st.planId = null;
+  document.getElementById(`kplan-${prefix}-thread`).innerHTML = '';
+  _kplanChatRenderAttachments(prefix);
+  document.getElementById(`kplan-${prefix}-input`).value = '';
+  _kplanChatUpdateSendState(prefix);
+}
+
+async function _kplanChatSend(prefix) {
+  const st = _kplanChat[prefix];
+  const input   = document.getElementById(`kplan-${prefix}-input`);
+  const sendBtn = document.getElementById(`kplan-${prefix}-send-btn`);
+  const loading = document.getElementById(`kplan-${prefix}-loading`);
+  const err     = document.getElementById(`kplan-${prefix}-err`);
+  const text = input.value.trim();
+  if (!text && !st.attachments.length) return;
 
   await _ensureKPlanLogin();
 
-  const btn = document.getElementById('kplan-submit-btn');
-  btn.disabled = true;
-  document.getElementById('kplan-result-card').style.display = '';
-  document.getElementById('kplan-result-loading-text').textContent = 'K-Plan이 빠르게 초안을 검토하는 중입니다…';
-  document.getElementById('kplan-result-loading').style.display = 'flex';
-  document.getElementById('kplan-result-output').style.display = 'none';
-  document.getElementById('kplan-result-err').style.display = 'none';
-  document.getElementById('kplan-final-review-row').style.display = 'none';
-  document.getElementById('kplan-final-review-hint').style.display = 'none';
-  document.getElementById('kplan-save-row').style.display = 'none';
-  document.getElementById('kplan-saved-box').style.display = 'none';
-  document.getElementById('kplan-fb-new-wrap').style.display = 'none';
-  document.getElementById('kplan-fb-new-thread').innerHTML = '';
+  const isFirstMessage = st.messages.length === 0;
+  let userTurn = text || '(첨부파일 참고)';
+  if (isFirstMessage) {
+    st.goal = text;
+    userTurn = `[목표와 실행 방법]\n${text}\n\n이 내용을 검토해, 미비점과 허점을 짚어주시고 다듬은 계획서를 작성해 주세요.`;
+  }
+  if (st.attachments.length) {
+    userTurn += '\n\n' + st.attachments.map(a =>
+      `[첨부파일: ${a.name}]${a.note ? ' ' + a.note : ''}${a.content ? '\n\`\`\`\n' + a.content + '\n\`\`\`' : ''}`
+    ).join('\n\n');
+  }
 
-  const userTurn = `[목적·목표]\n${goal}\n\n[제가 지금 생각하고 있는 실행 방법]\n${method || '(아직 구체적인 방법은 없습니다 — 처음부터 제안해 주세요)'}\n\n이 목표와 방법을 검토해, 미비점과 허점을 짚어주시고 다듬은 계획서를 작성해 주세요.`;
-  const messages = [_kplanBuildSystemMessage(), { role: 'user', content: userTurn }];
-  const out = document.getElementById('kplan-result-output');
+  if (isFirstMessage) {
+    st.messages = [_kplanBuildSystemMessage()];
+    document.getElementById(`kplan-${prefix}-landing`) && (document.getElementById(`kplan-${prefix}-landing`).style.display = 'none');
+  }
 
+  _kplanChatAppendBubble(prefix, 'user', { text: text || `(첨부파일 ${st.attachments.length}개)` });
+  input.value = ''; _kplanAutoResize(input);
+  st.attachments = []; _kplanChatRenderAttachments(prefix);
+  _kplanChatUpdateSendState(prefix);
+
+  sendBtn.disabled = true; loading.style.display = 'flex'; err.style.display = 'none';
+  document.getElementById(`kplan-${prefix}-final-row`).style.display = 'none';
+  document.getElementById(`kplan-${prefix}-final-hint`).style.display = 'none';
+  if (prefix === 'new') {
+    document.getElementById('kplan-new-save-row').style.display = 'none';
+    document.getElementById('kplan-new-saved-box').style.display = 'none';
+  }
+
+  const baseMessages = [...st.messages, { role: 'user', content: userTurn }];
   try {
-    // flash로 빠른 초안(속도 우선). pro 최종 검토는 사용자가 버튼을
-    // 눌러야만 이어서 실행된다(자동 연쇄 안 함 — 주피터 지시, 2026-09-03).
-    const draft = await _kplanRelayCall('kplan-flash', messages, { maxTokens: 8000, generationType: null });
-    out.innerHTML = '<span class="badge badge-draft" style="margin-bottom:10px;display:inline-block">⚡ 빠른 초안</span>' + mdToHtml(draft);
-    out.style.display = '';
+    const draft = await _kplanRelayCall('kplan-flash', baseMessages, { maxTokens: 8000, generationType: null });
+    _kplanChatAppendBubble(prefix, 'assistant', { md: draft, badge: { cls: 'badge-draft', label: '⚡ 빠른 초안' } });
 
-    _kplanPendingComposeMessages = messages;
-    _kplanPendingComposeGoal = goal;
-    _kplanPendingComposeDraft = draft;
-    document.getElementById('kplan-final-review-row').style.display = 'flex';
-    document.getElementById('kplan-final-review-hint').style.display = '';
-
-    _kplanFeedbackMessagesNew = [...messages, { role: 'assistant', content: draft }];
-    document.getElementById('kplan-fb-new-wrap').style.display = '';
+    st.pendingFinalBase = baseMessages;
+    st.pendingFinalDraft = draft;
+    document.getElementById(`kplan-${prefix}-final-row`).style.display = 'flex';
+    document.getElementById(`kplan-${prefix}-final-hint`).style.display = '';
   } catch (e) {
-    const err = document.getElementById('kplan-result-err');
     err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
   } finally {
-    document.getElementById('kplan-result-loading').style.display = 'none';
-    btn.disabled = false;
+    loading.style.display = 'none';
+    _kplanChatUpdateSendState(prefix);
   }
 }
 
-async function _kplanFinalReview() {
-  if (!_kplanPendingComposeMessages) return;
-  const reviewBtn = document.getElementById('kplan-final-review-btn');
-  reviewBtn.disabled = true;
-  document.getElementById('kplan-result-loading-text').textContent = 'K-Plan이 최종 검토 중입니다 — 정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다…';
-  document.getElementById('kplan-result-loading').style.display = 'flex';
-  document.getElementById('kplan-result-err').style.display = 'none';
-
-  const messages = _kplanPendingComposeMessages;
-  const out = document.getElementById('kplan-result-output');
+async function _kplanChatFinalReview(prefix) {
+  const st = _kplanChat[prefix];
+  if (!st.pendingFinalBase) return;
+  const finalBtn = document.getElementById(`kplan-${prefix}-final-btn`);
+  const loading  = document.getElementById(`kplan-${prefix}-loading`);
+  const err      = document.getElementById(`kplan-${prefix}-err`);
+  finalBtn.disabled = true;
+  document.getElementById(`kplan-${prefix}-loading-text`).textContent = (prefix === 'new' ? 'K-Plan' : 'K-Recompose') + '이 최종 검토 중입니다 — 정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다…';
+  loading.style.display = 'flex'; err.style.display = 'none';
 
   try {
     const reviewMessages = [
-      ...messages,
-      { role: 'assistant', content: _kplanPendingComposeDraft },
+      ...st.pendingFinalBase,
+      { role: 'assistant', content: st.pendingFinalDraft },
       { role: 'user', content: '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획서로 작성해 주세요.' },
     ];
-    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 16000, generationType: 'compose' });
+    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 16000, generationType: prefix === 'new' ? 'compose' : 'recompose' });
 
-    // 저장 이력은 초안 왕복 없이 [system, user, assistant(최종)]로 깔끔하게 유지.
-    messages.push({ role: 'assistant', content: raw });
-    _kplanCurrentMessages = messages;
-    _kplanCurrentGoal = _kplanPendingComposeGoal;
-    _kplanCurrentRefinedMd = raw;
+    st.messages = [...st.pendingFinalBase, { role: 'assistant', content: raw }];
 
-    out.innerHTML = mdToHtml(raw);
-    out.style.display = '';
-    document.getElementById('kplan-final-review-row').style.display = 'none';
-    document.getElementById('kplan-final-review-hint').style.display = 'none';
-    document.getElementById('kplan-save-row').style.display = 'flex';
+    // 방금 올린 초안 버블을 최종본으로 교체해 대화창을 깔끔하게 유지한다.
+    const thread = document.getElementById(`kplan-${prefix}-thread`);
+    const lastAssistantRow = thread.querySelectorAll('.chat-bubble-row.assistant');
+    const lastRow = lastAssistantRow[lastAssistantRow.length - 1];
+    if (lastRow) {
+      lastRow.querySelector('.chat-bubble').innerHTML = `<span class="badge badge-final chat-bubble-badge">✅ 최종본</span>` + mdToHtml(raw);
+    } else {
+      _kplanChatAppendBubble(prefix, 'assistant', { md: raw, badge: { cls: 'badge-final', label: '✅ 최종본' } });
+    }
 
-    _kplanFeedbackMessagesNew = messages; // 이미 assistant(최종본)까지 포함됨
-    document.getElementById('kplan-fb-new-wrap').style.display = '';
+    document.getElementById(`kplan-${prefix}-final-row`).style.display = 'none';
+    document.getElementById(`kplan-${prefix}-final-hint`).style.display = 'none';
+
+    if (prefix === 'new') {
+      document.getElementById('kplan-new-save-row').style.display = 'flex';
+    } else {
+      await _kplanChatCheckpointSave(raw);
+    }
   } catch (e) {
-    const err = document.getElementById('kplan-result-err');
     err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
   } finally {
-    document.getElementById('kplan-result-loading').style.display = 'none';
-    reviewBtn.disabled = false;
+    loading.style.display = 'none';
+    finalBtn.disabled = false;
   }
 }
 
-async function _kplanSavePlan() {
+// ══════════════════════════════════════════════════════════════
+// 새 계획 저장 / 체크포인트 저장
+// ══════════════════════════════════════════════════════════════
+async function _kplanChatSavePlan() {
+  const st = _kplanChat.new;
   try {
     const res = await fetch(PROXY + '/kplan/plan/create', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         phone_verify_token: kplanPhoneVerifyToken,
-        title: _kplanCurrentGoal.slice(0, 60),
-        goal: _kplanCurrentGoal,
-        messages: _kplanCurrentMessages,
-        refined_plan_md: _kplanCurrentRefinedMd,
+        title: st.goal.slice(0, 60),
+        goal: st.goal,
+        messages: st.messages,
+        refined_plan_md: st.messages[st.messages.length - 1].content,
       }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) throw new Error(data.message || '저장에 실패했습니다.');
-    _kplanSavedPlanId = data.plan.plan_id;
-    const box = document.getElementById('kplan-saved-box');
+    const planId = data.plan.plan_id;
+    const box = document.getElementById('kplan-new-saved-box');
     box.style.display = '';
-    box.innerHTML = `<div class="plan-id-box">저장됨 — plan_id: <code>${escHtml(_kplanSavedPlanId)}</code>
-      <span class="plan-id-copy" onclick="navigator.clipboard.writeText('${escHtml(_kplanSavedPlanId)}')">복사</span></div>
-      <div class="hint">이 ID를 K-Mail과의 대화에서 "이 캠페인은 K-Plan 플랜 ${escHtml(_kplanSavedPlanId)}의 일부야"처럼 언급하면, 회신 결과가 도착했을 때 K-Recompose가 자동으로 이 플랜을 재검토합니다.</div>`;
-    document.getElementById('kplan-save-row').style.display = 'none';
+    box.innerHTML = `<div class="plan-id-box">저장됨 — plan_id: <code>${escHtml(planId)}</code>
+      <span class="plan-id-copy" onclick="navigator.clipboard.writeText('${escHtml(planId)}')">복사</span></div>
+      <div class="hint">이 ID를 K-Mail과의 대화에서 "이 캠페인은 K-Plan 플랜 ${escHtml(planId)}의 일부야"처럼 언급하면, 회신 결과가 도착했을 때 K-Recompose가 자동으로 이 플랜을 재검토합니다.</div>`;
+    document.getElementById('kplan-new-save-row').style.display = 'none';
   } catch (e) {
     alert('저장 실패: ' + e.message);
   }
 }
 
+async function _kplanChatCheckpointSave(refinedMd) {
+  const st = _kplanChat.mine;
+  try {
+    const saveRes = await fetch(PROXY + '/kplan/plan/checkpoint', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone_verify_token: kplanPhoneVerifyToken, plan_id: st.planId,
+        messages: st.messages, refined_plan_md: refinedMd,
+      }),
+    });
+    const saveData = await saveRes.json().catch(() => ({}));
+    if (!saveRes.ok || !saveData.ok) throw new Error(saveData.message || '저장에 실패했습니다.');
+    document.getElementById('kplan-detail-checkpoints').textContent = saveData.plan.checkpoint_count;
+  } catch (e) {
+    const err = document.getElementById('kplan-mine-err');
+    err.className = 'errbox'; err.textContent = '⚠ 체크포인트 저장 실패: ' + e.message; err.style.display = '';
+  }
+}
+
+_kplanChatInit('new');
+_kplanChatInit('mine');
+
 // ══════════════════════════════════════════════════════════════
-// 내 플랜 목록 / 상세 / K-Recompose
+// 내 플랜 목록 / 상세
 // ══════════════════════════════════════════════════════════════
 async function _kplanLoadMyPlans() {
   await _ensureKPlanLogin();
+  document.getElementById('kplan-list-card').style.display = '';
+  document.getElementById('kplan-detail-card').style.display = 'none';
   const loading = document.getElementById('kplan-list-loading');
   const empty = document.getElementById('kplan-list-empty');
   const itemsEl = document.getElementById('kplan-list-items');
@@ -781,15 +914,19 @@ async function _kplanLoadMyPlans() {
   }
 }
 
-let _kplanOpenPlanId = null;
+function _kplanBackToList() {
+  document.getElementById('kplan-list-card').style.display = '';
+  document.getElementById('kplan-detail-card').style.display = 'none';
+}
+
 async function _kplanOpenPlan(planId) {
   try {
     const res = await fetch(PROXY + `/kplan/plan/get?plan_id=${encodeURIComponent(planId)}&phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) throw new Error(data.message || '플랜을 불러오지 못했습니다.');
     const p = data.plan;
-    _kplanOpenPlanId = p.plan_id;
-    _kplanCurrentMessages = p.messages || [];
+
+    document.getElementById('kplan-list-card').style.display = 'none';
     document.getElementById('kplan-detail-card').style.display = '';
     document.getElementById('kplan-detail-title').textContent = p.title || p.goal;
     const statusEl = document.getElementById('kplan-detail-status');
@@ -797,298 +934,21 @@ async function _kplanOpenPlan(planId) {
     statusEl.textContent = p.status === 'active' ? '진행 중' : p.status === 'completed' ? '완료' : '중단';
     document.getElementById('kplan-detail-checkpoints').textContent = p.checkpoint_count || 0;
     document.getElementById('kplan-detail-planid').textContent = p.plan_id;
-    document.getElementById('kplan-detail-output').innerHTML = mdToHtml(p.refined_plan_md || '');
-    document.getElementById('kplan-detail-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    _kplanFeedbackMessagesDetail = (p.messages && p.messages.length) ? p.messages : null;
-    document.getElementById('kplan-fb-detail-thread').innerHTML = '';
-    document.getElementById('kplan-fb-detail-wrap').style.display = _kplanFeedbackMessagesDetail ? '' : 'none';
+    _kplanChatReset('mine');
+    const st = _kplanChat.mine;
+    st.planId = p.plan_id;
+    st.goal = p.goal || p.title || '';
+    st.messages = p.messages && p.messages.length ? p.messages : [_kplanBuildSystemMessage()];
+    (st.messages || []).forEach(m => {
+      if (m.role === 'user') _kplanChatAppendBubble('mine', 'user', { text: m.content });
+      else if (m.role === 'assistant') _kplanChatAppendBubble('mine', 'assistant', { md: m.content });
+    });
+    document.getElementById('kplan-detail-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     alert('불러오기 실패: ' + e.message);
   }
 }
-
-let _kplanPendingRecomposeBaseMessages = null;
-let _kplanPendingRecomposeDraft = '';
-let _kplanPendingRecomposeInputText = '';
-
-async function _kplanRecompose() {
-  const input = document.getElementById('kplan-checkpoint-input');
-  const text = input.value.trim();
-  if (!text) { alert('실행 결과를 입력해 주세요.'); return; }
-  if (!_kplanOpenPlanId) return;
-
-  await _ensureKPlanLogin();
-  const btn = document.getElementById('kplan-recompose-btn');
-  btn.disabled = true;
-  document.getElementById('kplan-recompose-loading-text').textContent = 'K-Recompose가 빠르게 초안을 검토하는 중입니다…';
-  document.getElementById('kplan-recompose-loading').style.display = 'flex';
-  document.getElementById('kplan-recompose-err').style.display = 'none';
-  document.getElementById('kplan-recompose-final-row').style.display = 'none';
-  document.getElementById('kplan-recompose-final-hint').style.display = 'none';
-
-  const baseMessages = [..._kplanCurrentMessages, {
-    role: 'user',
-    content: `[체크포인트 — 지금까지의 실행 결과]\n${text}\n\n이 결과를 근거로, 아직 실행하지 않은 나머지 계획을 재검토해 갱신해 주세요. 이미 끝난 부분은 다시 열지 말고, 무엇을 왜 바꾸는지 설명해 주세요.`,
-  }];
-  const detailOut = document.getElementById('kplan-detail-output');
-
-  try {
-    // flash로 빠른 초안. pro 최종 검토는 사용자가 버튼을 눌러야만
-    // 이어서 실행된다(자동 연쇄 안 함 — 주피터 지시, 2026-09-03).
-    const draft = await _kplanRelayCall('kplan-flash', baseMessages, { maxTokens: 8000, generationType: null });
-    detailOut.innerHTML = '<span class="badge badge-draft" style="margin-bottom:10px;display:inline-block">⚡ 빠른 초안</span>' + mdToHtml(draft);
-
-    _kplanPendingRecomposeBaseMessages = baseMessages;
-    _kplanPendingRecomposeDraft = draft;
-    _kplanPendingRecomposeInputText = text;
-    document.getElementById('kplan-recompose-final-row').style.display = 'flex';
-    document.getElementById('kplan-recompose-final-hint').style.display = '';
-
-    _kplanFeedbackMessagesDetail = [...baseMessages, { role: 'assistant', content: draft }];
-    document.getElementById('kplan-fb-detail-wrap').style.display = '';
-  } catch (e) {
-    const err = document.getElementById('kplan-recompose-err');
-    err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
-  } finally {
-    document.getElementById('kplan-recompose-loading').style.display = 'none';
-    btn.disabled = false;
-  }
-}
-
-async function _kplanRecomposeFinalReview() {
-  if (!_kplanPendingRecomposeBaseMessages) return;
-  const reviewBtn = document.getElementById('kplan-recompose-final-btn');
-  reviewBtn.disabled = true;
-  document.getElementById('kplan-recompose-loading-text').textContent = 'K-Recompose가 최종 검토 중입니다 — 정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다…';
-  document.getElementById('kplan-recompose-loading').style.display = 'flex';
-  document.getElementById('kplan-recompose-err').style.display = 'none';
-
-  const baseMessages = _kplanPendingRecomposeBaseMessages;
-  const detailOut = document.getElementById('kplan-detail-output');
-
-  try {
-    const reviewMessages = [
-      ...baseMessages,
-      { role: 'assistant', content: _kplanPendingRecomposeDraft },
-      { role: 'user', content: '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획으로 작성해 주세요.' },
-    ];
-    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 16000, generationType: 'recompose' });
-
-    // 저장 이력은 초안 왕복 없이 유지 — 체크포인트 사용자 발화 다음 곧바로 최종 답변.
-    const messages = [...baseMessages, { role: 'assistant', content: raw }];
-
-    const saveRes = await fetch(PROXY + '/kplan/plan/checkpoint', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        phone_verify_token: kplanPhoneVerifyToken, plan_id: _kplanOpenPlanId,
-        messages, refined_plan_md: raw,
-      }),
-    });
-    const saveData = await saveRes.json().catch(() => ({}));
-    if (!saveRes.ok || !saveData.ok) throw new Error(saveData.message || '저장에 실패했습니다.');
-
-    _kplanCurrentMessages = messages;
-    detailOut.innerHTML = mdToHtml(raw);
-    document.getElementById('kplan-detail-checkpoints').textContent = saveData.plan.checkpoint_count;
-    document.getElementById('kplan-recompose-final-row').style.display = 'none';
-    document.getElementById('kplan-recompose-final-hint').style.display = 'none';
-    document.getElementById('kplan-checkpoint-input').value = '';
-
-    _kplanFeedbackMessagesDetail = messages; // 이미 assistant(최종본)까지 포함됨
-    document.getElementById('kplan-fb-detail-wrap').style.display = '';
-  } catch (e) {
-    const err = document.getElementById('kplan-recompose-err');
-    err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
-  } finally {
-    document.getElementById('kplan-recompose-loading').style.display = 'none';
-    reviewBtn.disabled = false;
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// DeepSeek 피드백 채팅 — 사용자와 deepseek flash 간의 대화 채널.
-// Claude 입력 필드와 동일한 양식(파일 첨부, 음성 입력 마이크, 빨간
-// 배경 화살표 전송 버튼)으로 사용자 피드백을 받아, deepseek이 이를
-// 반영해 보고서를 갱신한다. deepseek 자체 chat 사이트와 다른 점은
-// K-Plan SP가 시스템 메시지로 함께 들어간다는 점뿐이다.
-// (주피터 지시, 2026-09-03 — flash 유지, pro로 자동 승격하지 않음)
-// ══════════════════════════════════════════════════════════════
-let _kplanFeedbackMessagesNew = null;
-let _kplanFeedbackMessagesDetail = null;
-const _kplanFeedbackState = {}; // prefix -> { attachments, recognizing, recognition, opts }
-
-function _kplanFeedbackInit(prefix, opts) {
-  _kplanFeedbackState[prefix] = { attachments: [], recognizing: false, recognition: null, opts };
-
-  const input     = document.getElementById(`kplan-fb-${prefix}-input`);
-  const sendBtn   = document.getElementById(`kplan-fb-${prefix}-send-btn`);
-  const fileInput = document.getElementById(`kplan-fb-${prefix}-file`);
-  const attachBtn = document.getElementById(`kplan-fb-${prefix}-attach-btn`);
-  const micBtn    = document.getElementById(`kplan-fb-${prefix}-mic-btn`);
-
-  _kplanAutoResize(input);
-  input.addEventListener('input', () => { _kplanAutoResize(input); _kplanFeedbackUpdateSendState(prefix); });
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _kplanFeedbackSend(prefix); }
-  });
-  attachBtn.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => _kplanFeedbackHandleFiles(prefix, e.target.files));
-  micBtn.addEventListener('click', () => _kplanFeedbackToggleMic(prefix));
-
-  _kplanFeedbackUpdateSendState(prefix);
-}
-
-function _kplanFeedbackUpdateSendState(prefix) {
-  const input = document.getElementById(`kplan-fb-${prefix}-input`);
-  const sendBtn = document.getElementById(`kplan-fb-${prefix}-send-btn`);
-  const st = _kplanFeedbackState[prefix];
-  sendBtn.disabled = !(input.value.trim() || (st && st.attachments.length));
-}
-
-async function _kplanFeedbackHandleFiles(prefix, fileList) {
-  const st = _kplanFeedbackState[prefix];
-  const TEXTY = /^(text\/|application\/json|application\/xml)/;
-  const MAX_CHARS = 6000;
-  for (const file of Array.from(fileList || [])) {
-    const item = { name: file.name, content: null, note: '' };
-    if (TEXTY.test(file.type) || /\.(md|txt|csv|json|log)$/i.test(file.name)) {
-      try {
-        const text = await file.text();
-        item.content = text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) + '\n…(이하 생략)' : text;
-      } catch (e) { item.note = '(읽기 실패)'; }
-    } else {
-      item.note = '(텍스트로 변환할 수 없어 파일명만 전달됩니다)';
-    }
-    st.attachments.push(item);
-  }
-  document.getElementById(`kplan-fb-${prefix}-file`).value = '';
-  _kplanFeedbackRenderAttachments(prefix);
-  _kplanFeedbackUpdateSendState(prefix);
-}
-
-function _kplanFeedbackRenderAttachments(prefix) {
-  const st = _kplanFeedbackState[prefix];
-  const box = document.getElementById(`kplan-fb-${prefix}-attachments`);
-  box.innerHTML = '';
-  st.attachments.forEach((a, i) => {
-    const chip = document.createElement('span');
-    chip.className = 'fb-chip';
-    chip.innerHTML = `📎 ${escHtml(a.name)} <span class="fb-chip-x">✕</span>`;
-    chip.querySelector('.fb-chip-x').onclick = () => {
-      st.attachments.splice(i, 1);
-      _kplanFeedbackRenderAttachments(prefix);
-      _kplanFeedbackUpdateSendState(prefix);
-    };
-    box.appendChild(chip);
-  });
-}
-
-function _kplanFeedbackToggleMic(prefix) {
-  const st = _kplanFeedbackState[prefix];
-  const micBtn = document.getElementById(`kplan-fb-${prefix}-mic-btn`);
-  const input = document.getElementById(`kplan-fb-${prefix}-input`);
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('이 브라우저는 음성 입력을 지원하지 않습니다.'); return; }
-  if (st.recognizing) { st.recognition && st.recognition.stop(); return; }
-  const rec = new SR();
-  rec.lang = 'ko-KR'; rec.interimResults = false; rec.maxAlternatives = 1;
-  rec.onstart = () => { st.recognizing = true; micBtn.classList.add('fb-mic-active'); };
-  rec.onerror = () => { st.recognizing = false; micBtn.classList.remove('fb-mic-active'); };
-  rec.onend   = () => { st.recognizing = false; micBtn.classList.remove('fb-mic-active'); };
-  rec.onresult = (e) => {
-    const text = Array.from(e.results).map(r => r[0].transcript).join(' ');
-    input.value = (input.value ? input.value + ' ' : '') + text;
-    _kplanAutoResize(input);
-    _kplanFeedbackUpdateSendState(prefix);
-  };
-  st.recognition = rec;
-  rec.start();
-}
-
-function _kplanFeedbackAppendBubble(prefix, role, text) {
-  const thread = document.getElementById(`kplan-fb-${prefix}-thread`);
-  const div = document.createElement('div');
-  div.className = 'fb-bubble fb-bubble-' + (role === 'user' ? 'user' : 'assistant');
-  div.textContent = text;
-  thread.appendChild(div);
-  thread.scrollTop = thread.scrollHeight;
-}
-
-async function _kplanFeedbackSend(prefix) {
-  const st = _kplanFeedbackState[prefix];
-  const opts = st.opts;
-  const input   = document.getElementById(`kplan-fb-${prefix}-input`);
-  const sendBtn = document.getElementById(`kplan-fb-${prefix}-send-btn`);
-  const loading = document.getElementById(`kplan-fb-${prefix}-loading`);
-  const err     = document.getElementById(`kplan-fb-${prefix}-err`);
-  const text = input.value.trim();
-  if (!text && !st.attachments.length) return;
-
-  const baseMessages = opts.getMessages();
-  if (!baseMessages || !baseMessages.length) return;
-
-  await _ensureKPlanLogin();
-
-  let userTurn = text || '(첨부파일 참고)';
-  if (st.attachments.length) {
-    userTurn += '\n\n' + st.attachments.map(a =>
-      `[첨부파일: ${a.name}]${a.note ? ' ' + a.note : ''}${a.content ? '\n\`\`\`\n' + a.content + '\n\`\`\`' : ''}`
-    ).join('\n\n');
-  }
-
-  _kplanFeedbackAppendBubble(prefix, 'user', text || `(첨부파일 ${st.attachments.length}개)`);
-  input.value = ''; _kplanAutoResize(input);
-  st.attachments = []; _kplanFeedbackRenderAttachments(prefix);
-  _kplanFeedbackUpdateSendState(prefix);
-
-  sendBtn.disabled = true; loading.style.display = 'flex'; err.style.display = 'none';
-
-  const newMessages = [...baseMessages, { role: 'user', content: userTurn }];
-  try {
-    const raw = await _kplanRelayCall('kplan-flash', newMessages, { maxTokens: 8000, generationType: null });
-    const updatedMessages = [...newMessages, { role: 'assistant', content: raw }];
-    opts.setMessages(updatedMessages);
-    _kplanFeedbackAppendBubble(prefix, 'assistant', 'DeepSeek이 위 보고서를 갱신했습니다.');
-    opts.getOutputEl().innerHTML = mdToHtml(raw);
-  } catch (e) {
-    err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
-  } finally {
-    loading.style.display = 'none';
-    _kplanFeedbackUpdateSendState(prefix);
-  }
-}
-
-_kplanFeedbackInit('new', {
-  getMessages: () => _kplanFeedbackMessagesNew,
-  getOutputEl: () => document.getElementById('kplan-result-output'),
-  setMessages: (m) => {
-    _kplanFeedbackMessagesNew = m;
-    _kplanCurrentMessages = m;
-    _kplanCurrentRefinedMd = m[m.length - 1].content;
-    _kplanPendingComposeMessages = m.slice(0, -1);
-    _kplanPendingComposeDraft = m[m.length - 1].content;
-    // 피드백으로 내용이 바뀌었으니 다시 최종 검토를 거쳐야 저장할 수 있다.
-    document.getElementById('kplan-final-review-row').style.display = 'flex';
-    document.getElementById('kplan-final-review-hint').style.display = '';
-    document.getElementById('kplan-save-row').style.display = 'none';
-    document.getElementById('kplan-saved-box').style.display = 'none';
-  },
-});
-
-_kplanFeedbackInit('detail', {
-  getMessages: () => _kplanFeedbackMessagesDetail,
-  getOutputEl: () => document.getElementById('kplan-detail-output'),
-  setMessages: (m) => {
-    _kplanFeedbackMessagesDetail = m;
-    _kplanCurrentMessages = m;
-    _kplanPendingRecomposeBaseMessages = m.slice(0, -1);
-    _kplanPendingRecomposeDraft = m[m.length - 1].content;
-    // 피드백으로 내용이 바뀌었으니 다시 최종 검토(pro)를 거쳐야 저장(체크포인트)된다.
-    document.getElementById('kplan-recompose-final-row').style.display = 'flex';
-    document.getElementById('kplan-recompose-final-hint').style.display = '';
-  },
-});
 </script>
 </body>
 </html>
