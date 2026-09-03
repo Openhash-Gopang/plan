@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
-<title>K-Plan — 계획 정련 및 실행 관리</title>
-<meta name="description" content="목표와 실행 방법을 입력하면 K-Plan이 미비점과 허점을 짚어 정련된 계획서를 작성합니다. 각 단계 실행 결과를 입력하면 계획을 계속 갱신합니다(K-Recompose).">
+<title>K-Plan — 계획 다듬기 및 실행 관리</title>
+<meta name="description" content="목표와 실행 방법을 입력하면 K-Plan이 미비점과 허점을 짚어 다듬은 계획서를 작성합니다. 각 단계 실행 결과를 입력하면 계획을 계속 갱신합니다(K-Recompose).">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%233D4FC4%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-family%3D%22%27Pretendard%27%2C%27Malgun%20Gothic%27%2Csans-serif%22%20font-size%3D%2234%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3EP%3C/text%3E%3C/svg%3E">
 
 <!-- 고팡 공통 인증(지갑 세션) — desktop.html 등과 동일한 표준 로드 방식 -->
@@ -161,7 +161,7 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
   <div id="tab-new" class="tab-panel active">
     <div class="card">
       <h2>목표와 실행 방법을 입력하세요</h2>
-      <div class="sub">K-Plan이 미비점과 허점을 짚어 정련된 계획서를 작성합니다. 요청을 곧바로 승인하지 않고, 이 방법이 목표 달성의 최선 경로인지부터 검토합니다.</div>
+      <div class="sub">K-Plan이 미비점과 허점을 짚어 다듬은 계획서를 작성합니다. 요청을 곧바로 승인하지 않고, 이 방법이 목표 달성의 최선 경로인지부터 검토합니다.</div>
 
       <label for="kplan-goal">목적·목표</label>
       <textarea id="kplan-goal" placeholder="예: 3년 안에 지금 회사에서 시니어로 승진하고 싶다"></textarea>
@@ -170,13 +170,13 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
       <textarea id="kplan-method" placeholder="예: 매주 야근을 자원하고, 팀장에게 분기마다 성과를 어필하려고 한다"></textarea>
 
       <div class="btn-row">
-        <button class="btn btn-primary" id="kplan-submit-btn" onclick="_kplanSubmitNew()">계획 정련받기</button>
+        <button class="btn btn-primary" id="kplan-submit-btn" onclick="_kplanSubmitNew()">계획 다듬기</button>
       </div>
-      <div class="hint">베타 기간 중 하루 생성 한도가 있습니다. 첫 정련은 실제 DeepSeek 모델 호출 비용의 일부가 GDC 잔액에서 청구됩니다.</div>
+      <div class="hint">베타 기간 중 하루 생성 한도가 있습니다. 처음 다듬을 때는 실제 DeepSeek 모델 호출 비용의 일부가 GDC 잔액에서 청구됩니다.</div>
     </div>
 
     <div class="card" id="kplan-result-card" style="display:none">
-      <h2>정련된 계획서</h2>
+      <h2>다듬은 계획서</h2>
       <div id="kplan-result-loading" class="loading-row" style="display:none"><span class="spinner"></span>K-Plan이 계획을 검토하는 중입니다…</div>
       <div id="kplan-result-output" class="plan-output" style="display:none"></div>
       <div id="kplan-result-err" style="display:none"></div>
@@ -204,7 +204,7 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
       <label for="kplan-checkpoint-input" style="margin-top:20px">이 단계까지의 실행 결과를 입력하세요</label>
       <textarea id="kplan-checkpoint-input" placeholder="예: 이번 분기 성과 어필까지는 계획대로 했는데, 팀장 반응이 예상보다 미온적이었다"></textarea>
       <div class="btn-row">
-        <button class="btn btn-primary" id="kplan-recompose-btn" onclick="_kplanRecompose()">실행 결과 반영해 계획 다시 정련받기</button>
+        <button class="btn btn-primary" id="kplan-recompose-btn" onclick="_kplanRecompose()">실행 결과 반영해 계획 다시 다듬기</button>
       </div>
       <div id="kplan-recompose-loading" class="loading-row" style="display:none"><span class="spinner"></span>K-Recompose가 남은 계획을 재검토하는 중입니다…</div>
       <div id="kplan-recompose-err" style="display:none"></div>
@@ -221,7 +221,7 @@ const _KPLAN_SP_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// 아주 단순한 마크다운→HTML 변환(제목/굵게/리스트/문단) — 정련된 계획서
+// 아주 단순한 마크다운→HTML 변환(제목/굵게/리스트/문단) — 다듬은 계획서
 // 렌더링용. 전용 라이브러리를 새로 붙이지 않고 klaw 저장소에도 없는
 // 가벼운 자체 구현으로 충분한 범위만 처리한다.
 function mdToHtml(md) {
@@ -379,7 +379,7 @@ async function _kplanRelayCall(tier, messages, opts = {}) {
   }
 }
 
-const KPLAN_SYSTEM_FALLBACK = '당신은 혼디넷의 K-Plan입니다. 사용자의 목표와 사용자가 제시한 실행 방법을 검토해, 미비점과 허점을 짚고 더 나은 대안이 있으면 함께 제시한 정련된 계획서를 작성하세요. 확정된 통계처럼 보이는 수치를 지어내지 말고, "완전 자동화"나 "AI가 대신 처리" 같은 과장된 표현을 쓰지 마세요.';
+const KPLAN_SYSTEM_FALLBACK = '당신은 혼디넷의 K-Plan입니다. 사용자의 목표와 사용자가 제시한 실행 방법을 검토해, 미비점과 허점을 짚고 더 나은 대안이 있으면 함께 제시한 다듬은 계획서를 작성하세요. 확정된 통계처럼 보이는 수치를 지어내지 말고, "완전 자동화"나 "AI가 대신 처리" 같은 과장된 표현을 쓰지 마세요.';
 
 function _kplanBuildSystemMessage() {
   return { role: 'system', content: kplanSPText || KPLAN_SYSTEM_FALLBACK };
@@ -397,7 +397,7 @@ function _switchTab(name) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// 새 계획 정련
+// 새 계획 다듬기
 // ══════════════════════════════════════════════════════════════
 let _kplanCurrentMessages = [];
 let _kplanCurrentGoal = '';
@@ -420,7 +420,7 @@ async function _kplanSubmitNew() {
   document.getElementById('kplan-save-row').style.display = 'none';
   document.getElementById('kplan-saved-box').style.display = 'none';
 
-  const userTurn = `[목적·목표]\n${goal}\n\n[제가 지금 생각하고 있는 실행 방법]\n${method || '(아직 구체적인 방법은 없습니다 — 처음부터 제안해 주세요)'}\n\n이 목표와 방법을 검토해, 미비점과 허점을 짚어주시고 정련된 계획서를 작성해 주세요.`;
+  const userTurn = `[목적·목표]\n${goal}\n\n[제가 지금 생각하고 있는 실행 방법]\n${method || '(아직 구체적인 방법은 없습니다 — 처음부터 제안해 주세요)'}\n\n이 목표와 방법을 검토해, 미비점과 허점을 짚어주시고 다듬은 계획서를 작성해 주세요.`;
   const messages = [_kplanBuildSystemMessage(), { role: 'user', content: userTurn }];
 
   try {
