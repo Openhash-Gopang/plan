@@ -128,13 +128,33 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
       <div class="kplan-login-logo">🧭</div>
     </div>
     <div class="kplan-login-body">
-      <div class="kplan-login-desc">휴대폰 번호 뒷자리 8자를 입력하십시오.</div>
+      <div class="kplan-login-desc" id="kplan-login-desc">휴대폰 번호 뒷자리 8자를 입력하십시오.</div>
+
       <div id="kplan-login-step-phone">
         <div class="kplan-login-row">
           <input type="tel" id="kplan-login-phone" placeholder="전화번호 뒷 8자리" inputmode="numeric" maxlength="8" autocomplete="tel">
-          <button type="button" id="kplan-login-send-btn" onclick="_kplanLoginSendOtp()">인증번호 받기</button>
+        </div>
+        <div class="kplan-login-row" style="flex-direction:column;gap:8px">
+          <button type="button" id="kplan-login-devlink-btn" onclick="_kplanLoginStartDeviceLink()" style="width:100%;padding:11px 16px">📱 폰으로 승인받기</button>
+          <button type="button" id="kplan-login-send-btn" onclick="_kplanLoginSendOtp()" style="width:100%;padding:11px 16px;background:transparent;color:var(--pri);border:1px solid var(--pri-bd)">대신 문자 인증번호 받기</button>
         </div>
       </div>
+
+      <!-- device-link 대기 화면 — SMS 비용 없이 이미 로그인된 폰에 웹푸시로
+           승인 요청을 보내고, 폰에서 탭 한 번으로 승인되길 기다린다.
+           PC에서 코드를 입력할 필요가 없다 — 폰이 스스로 서명해 보낸다. -->
+      <div id="kplan-login-step-devlink" style="display:none">
+        <div class="kplan-login-devlink-wait">
+          <div class="spinner" style="width:22px;height:22px;border-width:3px;margin:0 auto 12px"></div>
+          <div id="kplan-devlink-status" style="font-size:12.5px;color:var(--sub);text-align:center">스마트폰 알림을 확인해 주세요…</div>
+          <div id="kplan-devlink-timer" style="font-size:11px;color:var(--hint);text-align:center;margin-top:4px"></div>
+        </div>
+        <div class="kplan-login-row" style="margin-top:14px">
+          <button type="button" id="kplan-devlink-sms-fallback" onclick="_kplanLoginSendOtp()" style="width:100%;padding:11px 16px;background:transparent;color:var(--pri);border:1px solid var(--pri-bd)">대신 문자 인증번호 받기</button>
+        </div>
+        <div class="kplan-login-resend"><a onclick="_kplanLoginResetPhoneStep()">번호를 다시 입력할게요</a></div>
+      </div>
+
       <div id="kplan-login-step-code" style="display:none">
         <div class="kplan-login-row">
           <input type="text" id="kplan-login-code" placeholder="인증번호 6자리" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
@@ -278,11 +298,123 @@ function _kplanLoginSetMsg(text, kind) {
   el.textContent = text || ''; el.className = 'kplan-login-msg' + (kind ? ' ' + kind : '');
 }
 function _kplanLoginResetPhoneStep() {
+  _kplanDevlinkStopPolling();
   document.getElementById('kplan-login-step-code').style.display = 'none';
+  document.getElementById('kplan-login-step-devlink').style.display = 'none';
   document.getElementById('kplan-login-step-phone').style.display = '';
   document.getElementById('kplan-login-code').value = '';
   _kplanLoginSetMsg('', '');
 }
+
+// ══════════════════════════════════════════════════════════════
+// device-link(sign_request) 로그인 — 2026-09-03 신설
+// SMS 없이 이미 로그인된 폰에 웹푸시로 승인 요청을 보내고, 폰이 스스로
+// 서명해 보내면 서버가 검증 후 phone_verify_token을 발급한다(형식은
+// 기존 OTP 토큰과 동일 — 아래 downstream 로직은 한 줄도 안 바뀐다).
+// PC에서 코드를 입력하는 단계가 없다 — 폰 쪽(device-link-approve.html)이
+// 알아서 code를 서버에 제출하고 서명까지 마친다. PC는 오직 poll만 한다.
+// ══════════════════════════════════════════════════════════════
+let _kplanDevlinkPollTimer = null;
+let _kplanDevlinkSessionId = null;
+let _kplanDevlinkCountdownTimer = null;
+
+function _kplanDevlinkStopPolling() {
+  if (_kplanDevlinkPollTimer) { clearInterval(_kplanDevlinkPollTimer); _kplanDevlinkPollTimer = null; }
+  if (_kplanDevlinkCountdownTimer) { clearInterval(_kplanDevlinkCountdownTimer); _kplanDevlinkCountdownTimer = null; }
+  _kplanDevlinkSessionId = null;
+  document.removeEventListener('visibilitychange', _kplanDevlinkOnVisibility);
+}
+
+// 백그라운드 탭에서는 브라우저가 setInterval을 크게 늦춘다 — 사용자가
+// 폰을 확인하러 갔다 돌아오는 순간(탭 포커스 복귀) 즉시 한 번 더 poll해서
+// 체감 지연을 없앤다(device-link.html의 동일 대응 재사용).
+function _kplanDevlinkOnVisibility() {
+  if (!document.hidden && _kplanDevlinkPollTimer) _kplanDevlinkPollOnce();
+}
+
+async function _kplanLoginStartDeviceLink() {
+  const phone = document.getElementById('kplan-login-phone').value.trim();
+  if (!phone) { _kplanLoginSetMsg('전화번호를 입력해 주세요.', 'err'); return; }
+  const btn = document.getElementById('kplan-login-devlink-btn');
+  btn.disabled = true; _kplanLoginSetMsg('', '');
+
+  const sigMsg = `kplan-login:${crypto.randomUUID()}:${Date.now()}`;
+  try {
+    const res = await fetch(PROXY + '/auth/device-link/init', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ e164: phone, pcLabel: 'plan.hondi.net', purpose: 'sign_request', sigMsg }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.message || data.detail || '요청에 실패했습니다.');
+
+    _kplanPendingE164 = phone;
+    _kplanDevlinkSessionId = data.sessionId;
+    document.getElementById('kplan-login-step-phone').style.display = 'none';
+    document.getElementById('kplan-login-step-devlink').style.display = '';
+
+    const statusEl = document.getElementById('kplan-devlink-status');
+    if (data.hasMobileDevice === false) {
+      statusEl.textContent = '이 번호로 연결된 스마트폰이 없습니다 — 아래에서 문자로 받아 주세요.';
+    } else {
+      statusEl.textContent = '스마트폰 알림을 확인해 주세요…';
+    }
+
+    _kplanDevlinkStartCountdown(data.expires_in || 90);
+    document.addEventListener('visibilitychange', _kplanDevlinkOnVisibility);
+    _kplanDevlinkPollTimer = setInterval(_kplanDevlinkPollOnce, 2000);
+  } catch (e) {
+    _kplanLoginSetMsg(e.message || '요청에 실패했습니다.', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function _kplanDevlinkStartCountdown(seconds) {
+  let remain = seconds;
+  const el = document.getElementById('kplan-devlink-timer');
+  const tick = () => {
+    el.textContent = remain > 0 ? `${remain}초 후 만료` : '만료됨';
+    if (remain <= 0 && _kplanDevlinkCountdownTimer) { clearInterval(_kplanDevlinkCountdownTimer); _kplanDevlinkCountdownTimer = null; }
+    remain -= 1;
+  };
+  tick();
+  _kplanDevlinkCountdownTimer = setInterval(tick, 1000);
+}
+
+async function _kplanDevlinkPollOnce() {
+  if (!_kplanDevlinkSessionId) return;
+  try {
+    const res = await fetch(PROXY + `/auth/device-link/poll?sessionId=${encodeURIComponent(_kplanDevlinkSessionId)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!data.ok) return;
+
+    if (data.state === 'expired') {
+      _kplanDevlinkStopPolling();
+      document.getElementById('kplan-devlink-status').textContent = '요청이 만료됐습니다.';
+      return;
+    }
+    if (data.state === 'verification_failed') {
+      _kplanDevlinkStopPolling();
+      document.getElementById('kplan-devlink-status').textContent = '승인을 확인하지 못했습니다 — 문자 인증으로 진행해 주세요.';
+      return;
+    }
+    if (data.state === 'delivered' && data.verified && data.phone_verify_token) {
+      _kplanDevlinkStopPolling();
+      kplanPhoneVerifyToken    = data.phone_verify_token;
+      kplanPhoneVerifyTokenExp = new Date(data.expires_at).getTime();
+      sessionStorage.setItem('kplan_phone_verify_token', kplanPhoneVerifyToken);
+      sessionStorage.setItem('kplan_phone_verify_token_exp', String(kplanPhoneVerifyTokenExp));
+      document.getElementById('kplan-login-overlay').classList.remove('show');
+      _kplanLoginSetMsg('', '');
+      const waiters = _kplanLoginWaiters; _kplanLoginWaiters = [];
+      waiters.forEach(resolve => resolve());
+    }
+    // 'pending'·'approved'면 계속 대기
+  } catch (e) {
+    // 일시적 네트워크 오류는 무시하고 다음 polling에서 재시도
+  }
+}
+
 async function _kplanLoginSendOtp() {
   const phone = document.getElementById('kplan-login-phone').value.trim();
   if (!phone) { _kplanLoginSetMsg('전화번호를 입력해 주세요.', 'err'); return; }
