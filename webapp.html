@@ -119,6 +119,35 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
 .tabbar button.active{color:var(--pri);border-bottom-color:var(--pri)}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
+
+/* ══════════════════════════════════════════════════════════════
+   DeepSeek 피드백 채팅 — 사용자와 deepseek flash 간의 대화 채널.
+   입력창 양식은 Claude 입력 필드와 동일(첨부·음성입력·빨간 배경
+   화살표 전송 버튼). K-Plan SP가 시스템 메시지로 들어간다는 점만
+   deepseek 자체 chat 사이트와 다르다(주피터 지시, 2026-09-03).
+   ══════════════════════════════════════════════════════════════ */
+.fb-wrap{margin-top:20px;padding-top:18px;border-top:1px solid var(--bdr)}
+.fb-wrap-title{font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:10px}
+.fb-thread{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;max-height:280px;overflow-y:auto}
+.fb-thread:empty{display:none;margin-bottom:0}
+.fb-bubble{max-width:88%;padding:9px 13px;border-radius:14px;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.fb-bubble-user{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:4px}
+.fb-bubble-assistant{align-self:flex-start;background:var(--pri-bg);color:var(--txt);border-bottom-left-radius:4px}
+.fb-attachments{display:flex;flex-wrap:wrap}
+.fb-attachments:empty{display:none}
+.fb-chip{display:inline-flex;align-items:center;gap:5px;background:var(--pri-bg);border:1px solid var(--pri-bd);color:var(--pri);font-size:11px;font-weight:600;padding:4px 8px;border-radius:8px;margin:0 6px 6px 0}
+.fb-chip-x{cursor:pointer;opacity:.7;font-size:10px}
+.fb-chip-x:hover{opacity:1}
+.fb-inputbar{display:flex;align-items:flex-end;gap:4px;background:#fff;border:1.5px solid var(--bdr);border-radius:24px;padding:6px 8px 6px 12px;transition:border-color .12s}
+.fb-inputbar:focus-within{border-color:var(--pri-lt)}
+.fb-icon-btn{flex-shrink:0;width:32px;height:32px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--hint);transition:background .12s,color .12s}
+.fb-icon-btn:hover{background:var(--bg);color:var(--sub)}
+.fb-icon-btn.fb-mic-active{color:var(--red);background:var(--rbg)}
+.fb-textarea{flex:1;min-width:0;border:none;outline:none;resize:none;font-size:13.5px;line-height:1.5;max-height:120px;padding:7px 2px;background:transparent;overflow-y:auto}
+.fb-send-btn{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:none;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .12s,transform .08s}
+.fb-send-btn:disabled{opacity:.35;cursor:not-allowed}
+.fb-send-btn:not(:disabled):hover{transform:scale(1.06)}
+.fb-loading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);margin-top:10px}
 </style>
 </head>
 <body>
@@ -205,6 +234,27 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
         <button class="btn btn-teal" onclick="_kplanSavePlan()">이 계획 저장하기</button>
       </div>
       <div id="kplan-saved-box" style="display:none"></div>
+
+      <div class="fb-wrap" id="kplan-fb-new-wrap" style="display:none">
+        <div class="fb-wrap-title">💬 DeepSeek에게 피드백하기 — 대화를 이어가며 보고서를 계속 다듬을 수 있습니다</div>
+        <div class="fb-thread" id="kplan-fb-new-thread"></div>
+        <div class="fb-attachments" id="kplan-fb-new-attachments"></div>
+        <div class="fb-inputbar">
+          <button type="button" class="fb-icon-btn" id="kplan-fb-new-attach-btn" title="파일 첨부">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <input type="file" id="kplan-fb-new-file" style="display:none" multiple>
+          <textarea id="kplan-fb-new-input" class="fb-textarea" rows="1" placeholder="다듬은 계획서에 대해 피드백을 입력하세요…"></textarea>
+          <button type="button" class="fb-icon-btn" id="kplan-fb-new-mic-btn" title="음성 입력">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button type="button" class="fb-send-btn" id="kplan-fb-new-send-btn" title="전송" disabled onclick="_kplanFeedbackSend('new')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </button>
+        </div>
+        <div class="fb-loading" id="kplan-fb-new-loading" style="display:none"><span class="spinner"></span>DeepSeek이 피드백을 반영해 보고서를 갱신하는 중입니다…</div>
+        <div class="errbox" id="kplan-fb-new-err" style="display:none"></div>
+      </div>
     </div>
   </div>
 
@@ -233,6 +283,27 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
       </div>
       <div class="hint" id="kplan-recompose-final-hint" style="display:none">정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다.</div>
       <div id="kplan-recompose-err" style="display:none"></div>
+
+      <div class="fb-wrap" id="kplan-fb-detail-wrap" style="display:none">
+        <div class="fb-wrap-title">💬 DeepSeek에게 피드백하기 — 대화를 이어가며 보고서를 계속 다듬을 수 있습니다</div>
+        <div class="fb-thread" id="kplan-fb-detail-thread"></div>
+        <div class="fb-attachments" id="kplan-fb-detail-attachments"></div>
+        <div class="fb-inputbar">
+          <button type="button" class="fb-icon-btn" id="kplan-fb-detail-attach-btn" title="파일 첨부">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          <input type="file" id="kplan-fb-detail-file" style="display:none" multiple>
+          <textarea id="kplan-fb-detail-input" class="fb-textarea" rows="1" placeholder="다듬은 계획서에 대해 피드백을 입력하세요…"></textarea>
+          <button type="button" class="fb-icon-btn" id="kplan-fb-detail-mic-btn" title="음성 입력">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button type="button" class="fb-send-btn" id="kplan-fb-detail-send-btn" title="전송" disabled onclick="_kplanFeedbackSend('detail')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </button>
+        </div>
+        <div class="fb-loading" id="kplan-fb-detail-loading" style="display:none"><span class="spinner"></span>DeepSeek이 피드백을 반영해 보고서를 갱신하는 중입니다…</div>
+        <div class="errbox" id="kplan-fb-detail-err" style="display:none"></div>
+      </div>
     </div>
   </div>
 </main>
@@ -581,6 +652,8 @@ async function _kplanSubmitNew() {
   document.getElementById('kplan-final-review-hint').style.display = 'none';
   document.getElementById('kplan-save-row').style.display = 'none';
   document.getElementById('kplan-saved-box').style.display = 'none';
+  document.getElementById('kplan-fb-new-wrap').style.display = 'none';
+  document.getElementById('kplan-fb-new-thread').innerHTML = '';
 
   const userTurn = `[목적·목표]\n${goal}\n\n[제가 지금 생각하고 있는 실행 방법]\n${method || '(아직 구체적인 방법은 없습니다 — 처음부터 제안해 주세요)'}\n\n이 목표와 방법을 검토해, 미비점과 허점을 짚어주시고 다듬은 계획서를 작성해 주세요.`;
   const messages = [_kplanBuildSystemMessage(), { role: 'user', content: userTurn }];
@@ -598,6 +671,9 @@ async function _kplanSubmitNew() {
     _kplanPendingComposeDraft = draft;
     document.getElementById('kplan-final-review-row').style.display = 'flex';
     document.getElementById('kplan-final-review-hint').style.display = '';
+
+    _kplanFeedbackMessagesNew = [...messages, { role: 'assistant', content: draft }];
+    document.getElementById('kplan-fb-new-wrap').style.display = '';
   } catch (e) {
     const err = document.getElementById('kplan-result-err');
     err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
@@ -637,6 +713,9 @@ async function _kplanFinalReview() {
     document.getElementById('kplan-final-review-row').style.display = 'none';
     document.getElementById('kplan-final-review-hint').style.display = 'none';
     document.getElementById('kplan-save-row').style.display = 'flex';
+
+    _kplanFeedbackMessagesNew = messages; // 이미 assistant(최종본)까지 포함됨
+    document.getElementById('kplan-fb-new-wrap').style.display = '';
   } catch (e) {
     const err = document.getElementById('kplan-result-err');
     err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
@@ -720,6 +799,10 @@ async function _kplanOpenPlan(planId) {
     document.getElementById('kplan-detail-planid').textContent = p.plan_id;
     document.getElementById('kplan-detail-output').innerHTML = mdToHtml(p.refined_plan_md || '');
     document.getElementById('kplan-detail-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    _kplanFeedbackMessagesDetail = (p.messages && p.messages.length) ? p.messages : null;
+    document.getElementById('kplan-fb-detail-thread').innerHTML = '';
+    document.getElementById('kplan-fb-detail-wrap').style.display = _kplanFeedbackMessagesDetail ? '' : 'none';
   } catch (e) {
     alert('불러오기 실패: ' + e.message);
   }
@@ -761,6 +844,9 @@ async function _kplanRecompose() {
     _kplanPendingRecomposeInputText = text;
     document.getElementById('kplan-recompose-final-row').style.display = 'flex';
     document.getElementById('kplan-recompose-final-hint').style.display = '';
+
+    _kplanFeedbackMessagesDetail = [...baseMessages, { role: 'assistant', content: draft }];
+    document.getElementById('kplan-fb-detail-wrap').style.display = '';
   } catch (e) {
     const err = document.getElementById('kplan-recompose-err');
     err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
@@ -808,6 +894,9 @@ async function _kplanRecomposeFinalReview() {
     document.getElementById('kplan-recompose-final-row').style.display = 'none';
     document.getElementById('kplan-recompose-final-hint').style.display = 'none';
     document.getElementById('kplan-checkpoint-input').value = '';
+
+    _kplanFeedbackMessagesDetail = messages; // 이미 assistant(최종본)까지 포함됨
+    document.getElementById('kplan-fb-detail-wrap').style.display = '';
   } catch (e) {
     const err = document.getElementById('kplan-recompose-err');
     err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
@@ -816,6 +905,190 @@ async function _kplanRecomposeFinalReview() {
     reviewBtn.disabled = false;
   }
 }
+
+// ══════════════════════════════════════════════════════════════
+// DeepSeek 피드백 채팅 — 사용자와 deepseek flash 간의 대화 채널.
+// Claude 입력 필드와 동일한 양식(파일 첨부, 음성 입력 마이크, 빨간
+// 배경 화살표 전송 버튼)으로 사용자 피드백을 받아, deepseek이 이를
+// 반영해 보고서를 갱신한다. deepseek 자체 chat 사이트와 다른 점은
+// K-Plan SP가 시스템 메시지로 함께 들어간다는 점뿐이다.
+// (주피터 지시, 2026-09-03 — flash 유지, pro로 자동 승격하지 않음)
+// ══════════════════════════════════════════════════════════════
+let _kplanFeedbackMessagesNew = null;
+let _kplanFeedbackMessagesDetail = null;
+const _kplanFeedbackState = {}; // prefix -> { attachments, recognizing, recognition, opts }
+
+function _kplanFeedbackInit(prefix, opts) {
+  _kplanFeedbackState[prefix] = { attachments: [], recognizing: false, recognition: null, opts };
+
+  const input     = document.getElementById(`kplan-fb-${prefix}-input`);
+  const sendBtn   = document.getElementById(`kplan-fb-${prefix}-send-btn`);
+  const fileInput = document.getElementById(`kplan-fb-${prefix}-file`);
+  const attachBtn = document.getElementById(`kplan-fb-${prefix}-attach-btn`);
+  const micBtn    = document.getElementById(`kplan-fb-${prefix}-mic-btn`);
+
+  _kplanAutoResize(input);
+  input.addEventListener('input', () => { _kplanAutoResize(input); _kplanFeedbackUpdateSendState(prefix); });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _kplanFeedbackSend(prefix); }
+  });
+  attachBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => _kplanFeedbackHandleFiles(prefix, e.target.files));
+  micBtn.addEventListener('click', () => _kplanFeedbackToggleMic(prefix));
+
+  _kplanFeedbackUpdateSendState(prefix);
+}
+
+function _kplanFeedbackUpdateSendState(prefix) {
+  const input = document.getElementById(`kplan-fb-${prefix}-input`);
+  const sendBtn = document.getElementById(`kplan-fb-${prefix}-send-btn`);
+  const st = _kplanFeedbackState[prefix];
+  sendBtn.disabled = !(input.value.trim() || (st && st.attachments.length));
+}
+
+async function _kplanFeedbackHandleFiles(prefix, fileList) {
+  const st = _kplanFeedbackState[prefix];
+  const TEXTY = /^(text\/|application\/json|application\/xml)/;
+  const MAX_CHARS = 6000;
+  for (const file of Array.from(fileList || [])) {
+    const item = { name: file.name, content: null, note: '' };
+    if (TEXTY.test(file.type) || /\.(md|txt|csv|json|log)$/i.test(file.name)) {
+      try {
+        const text = await file.text();
+        item.content = text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) + '\n…(이하 생략)' : text;
+      } catch (e) { item.note = '(읽기 실패)'; }
+    } else {
+      item.note = '(텍스트로 변환할 수 없어 파일명만 전달됩니다)';
+    }
+    st.attachments.push(item);
+  }
+  document.getElementById(`kplan-fb-${prefix}-file`).value = '';
+  _kplanFeedbackRenderAttachments(prefix);
+  _kplanFeedbackUpdateSendState(prefix);
+}
+
+function _kplanFeedbackRenderAttachments(prefix) {
+  const st = _kplanFeedbackState[prefix];
+  const box = document.getElementById(`kplan-fb-${prefix}-attachments`);
+  box.innerHTML = '';
+  st.attachments.forEach((a, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'fb-chip';
+    chip.innerHTML = `📎 ${escHtml(a.name)} <span class="fb-chip-x">✕</span>`;
+    chip.querySelector('.fb-chip-x').onclick = () => {
+      st.attachments.splice(i, 1);
+      _kplanFeedbackRenderAttachments(prefix);
+      _kplanFeedbackUpdateSendState(prefix);
+    };
+    box.appendChild(chip);
+  });
+}
+
+function _kplanFeedbackToggleMic(prefix) {
+  const st = _kplanFeedbackState[prefix];
+  const micBtn = document.getElementById(`kplan-fb-${prefix}-mic-btn`);
+  const input = document.getElementById(`kplan-fb-${prefix}-input`);
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('이 브라우저는 음성 입력을 지원하지 않습니다.'); return; }
+  if (st.recognizing) { st.recognition && st.recognition.stop(); return; }
+  const rec = new SR();
+  rec.lang = 'ko-KR'; rec.interimResults = false; rec.maxAlternatives = 1;
+  rec.onstart = () => { st.recognizing = true; micBtn.classList.add('fb-mic-active'); };
+  rec.onerror = () => { st.recognizing = false; micBtn.classList.remove('fb-mic-active'); };
+  rec.onend   = () => { st.recognizing = false; micBtn.classList.remove('fb-mic-active'); };
+  rec.onresult = (e) => {
+    const text = Array.from(e.results).map(r => r[0].transcript).join(' ');
+    input.value = (input.value ? input.value + ' ' : '') + text;
+    _kplanAutoResize(input);
+    _kplanFeedbackUpdateSendState(prefix);
+  };
+  st.recognition = rec;
+  rec.start();
+}
+
+function _kplanFeedbackAppendBubble(prefix, role, text) {
+  const thread = document.getElementById(`kplan-fb-${prefix}-thread`);
+  const div = document.createElement('div');
+  div.className = 'fb-bubble fb-bubble-' + (role === 'user' ? 'user' : 'assistant');
+  div.textContent = text;
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+async function _kplanFeedbackSend(prefix) {
+  const st = _kplanFeedbackState[prefix];
+  const opts = st.opts;
+  const input   = document.getElementById(`kplan-fb-${prefix}-input`);
+  const sendBtn = document.getElementById(`kplan-fb-${prefix}-send-btn`);
+  const loading = document.getElementById(`kplan-fb-${prefix}-loading`);
+  const err     = document.getElementById(`kplan-fb-${prefix}-err`);
+  const text = input.value.trim();
+  if (!text && !st.attachments.length) return;
+
+  const baseMessages = opts.getMessages();
+  if (!baseMessages || !baseMessages.length) return;
+
+  await _ensureKPlanLogin();
+
+  let userTurn = text || '(첨부파일 참고)';
+  if (st.attachments.length) {
+    userTurn += '\n\n' + st.attachments.map(a =>
+      `[첨부파일: ${a.name}]${a.note ? ' ' + a.note : ''}${a.content ? '\n\`\`\`\n' + a.content + '\n\`\`\`' : ''}`
+    ).join('\n\n');
+  }
+
+  _kplanFeedbackAppendBubble(prefix, 'user', text || `(첨부파일 ${st.attachments.length}개)`);
+  input.value = ''; _kplanAutoResize(input);
+  st.attachments = []; _kplanFeedbackRenderAttachments(prefix);
+  _kplanFeedbackUpdateSendState(prefix);
+
+  sendBtn.disabled = true; loading.style.display = 'flex'; err.style.display = 'none';
+
+  const newMessages = [...baseMessages, { role: 'user', content: userTurn }];
+  try {
+    const raw = await _kplanRelayCall('kplan-flash', newMessages, { maxTokens: 8000, generationType: null });
+    const updatedMessages = [...newMessages, { role: 'assistant', content: raw }];
+    opts.setMessages(updatedMessages);
+    _kplanFeedbackAppendBubble(prefix, 'assistant', 'DeepSeek이 위 보고서를 갱신했습니다.');
+    opts.getOutputEl().innerHTML = mdToHtml(raw);
+  } catch (e) {
+    err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = '';
+  } finally {
+    loading.style.display = 'none';
+    _kplanFeedbackUpdateSendState(prefix);
+  }
+}
+
+_kplanFeedbackInit('new', {
+  getMessages: () => _kplanFeedbackMessagesNew,
+  getOutputEl: () => document.getElementById('kplan-result-output'),
+  setMessages: (m) => {
+    _kplanFeedbackMessagesNew = m;
+    _kplanCurrentMessages = m;
+    _kplanCurrentRefinedMd = m[m.length - 1].content;
+    _kplanPendingComposeMessages = m.slice(0, -1);
+    _kplanPendingComposeDraft = m[m.length - 1].content;
+    // 피드백으로 내용이 바뀌었으니 다시 최종 검토를 거쳐야 저장할 수 있다.
+    document.getElementById('kplan-final-review-row').style.display = 'flex';
+    document.getElementById('kplan-final-review-hint').style.display = '';
+    document.getElementById('kplan-save-row').style.display = 'none';
+    document.getElementById('kplan-saved-box').style.display = 'none';
+  },
+});
+
+_kplanFeedbackInit('detail', {
+  getMessages: () => _kplanFeedbackMessagesDetail,
+  getOutputEl: () => document.getElementById('kplan-detail-output'),
+  setMessages: (m) => {
+    _kplanFeedbackMessagesDetail = m;
+    _kplanCurrentMessages = m;
+    _kplanPendingRecomposeBaseMessages = m.slice(0, -1);
+    _kplanPendingRecomposeDraft = m[m.length - 1].content;
+    // 피드백으로 내용이 바뀌었으니 다시 최종 검토(pro)를 거쳐야 저장(체크포인트)된다.
+    document.getElementById('kplan-recompose-final-row').style.display = 'flex';
+    document.getElementById('kplan-recompose-final-hint').style.display = '';
+  },
+});
 </script>
 </body>
 </html>
