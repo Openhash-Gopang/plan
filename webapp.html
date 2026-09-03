@@ -103,6 +103,7 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
 .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700}
 .badge-active{background:var(--gbg);color:var(--grn)}
 .badge-completed{background:#EDEFF3;color:var(--sub)}
+.badge-draft{background:var(--obg);color:var(--org)}
 .badge-abandoned{background:var(--rbg);color:var(--red)}
 
 .plan-list-item{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .12s}
@@ -193,7 +194,7 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
 
     <div class="card" id="kplan-result-card" style="display:none">
       <h2>다듬은 계획서</h2>
-      <div id="kplan-result-loading" class="loading-row" style="display:none"><span class="spinner"></span>K-Plan이 계획을 검토하는 중입니다…</div>
+      <div id="kplan-result-loading" class="loading-row" style="display:none"><span class="spinner"></span><span id="kplan-result-loading-text">K-Plan이 빠르게 초안을 검토하는 중입니다…</span></div>
       <div id="kplan-result-output" class="plan-output" style="display:none"></div>
       <div id="kplan-result-err" style="display:none"></div>
       <div class="btn-row" id="kplan-save-row" style="display:none">
@@ -222,7 +223,7 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
       <div class="btn-row">
         <button class="btn btn-primary" id="kplan-recompose-btn" onclick="_kplanRecompose()">실행 결과 반영해 계획 다시 다듬기</button>
       </div>
-      <div id="kplan-recompose-loading" class="loading-row" style="display:none"><span class="spinner"></span>K-Recompose가 남은 계획을 재검토하는 중입니다…</div>
+      <div id="kplan-recompose-loading" class="loading-row" style="display:none"><span class="spinner"></span><span id="kplan-recompose-loading-text">K-Recompose가 빠르게 초안을 검토하는 중입니다…</span></div>
       <div id="kplan-recompose-err" style="display:none"></div>
     </div>
   </div>
@@ -542,6 +543,8 @@ async function _kplanSubmitNew() {
   const btn = document.getElementById('kplan-submit-btn');
   btn.disabled = true;
   document.getElementById('kplan-result-card').style.display = '';
+  const loadingTextEl = document.getElementById('kplan-result-loading-text');
+  loadingTextEl.textContent = 'K-Plan이 빠르게 초안을 검토하는 중입니다…';
   document.getElementById('kplan-result-loading').style.display = 'flex';
   document.getElementById('kplan-result-output').style.display = 'none';
   document.getElementById('kplan-result-err').style.display = 'none';
@@ -550,16 +553,34 @@ async function _kplanSubmitNew() {
 
   const userTurn = `[목적·목표]\n${goal}\n\n[제가 지금 생각하고 있는 실행 방법]\n${method || '(아직 구체적인 방법은 없습니다 — 처음부터 제안해 주세요)'}\n\n이 목표와 방법을 검토해, 미비점과 허점을 짚어주시고 다듬은 계획서를 작성해 주세요.`;
   const messages = [_kplanBuildSystemMessage(), { role: 'user', content: userTurn }];
+  const out = document.getElementById('kplan-result-output');
 
   try {
-    const raw = await _kplanRelayCall('kplan-pro', messages, { maxTokens: 2200, generationType: 'compose' });
+    // ── 1단계 — flash로 빠른 초안(속도 우선). 이 라운드는 저장 이력에
+    // 안 남긴다 — K-Recompose가 매번 이 초안 왕복까지 다시 읽게 하고
+    // 싶지 않아서(비용·문맥 낭비).
+    const draft = await _kplanRelayCall('kplan-flash', messages, { maxTokens: 1200, generationType: null });
+    out.innerHTML = '<span class="badge badge-draft" style="margin-bottom:10px;display:inline-block">⚡ 빠른 초안 — 최종 검토 중</span>' + mdToHtml(draft);
+    out.style.display = '';
+
+    // ── 2단계 — pro로 최종 검토. 응답이 느릴 수 있어 미리 고지한다.
+    loadingTextEl.textContent = 'K-Plan이 최종 검토 중입니다 — 정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다…';
+    document.getElementById('kplan-result-loading').style.display = 'flex';
+
+    const reviewMessages = [
+      ...messages,
+      { role: 'assistant', content: draft },
+      { role: 'user', content: '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획서로 작성해 주세요.' },
+    ];
+    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 2200, generationType: 'compose' });
+
+    // 저장 이력은 초안 왕복 없이 [system, user, assistant(최종)]로 깔끔하게 유지.
     messages.push({ role: 'assistant', content: raw });
     _kplanCurrentMessages = messages;
     _kplanCurrentGoal = goal;
     _kplanCurrentRefinedMd = raw;
 
     document.getElementById('kplan-result-loading').style.display = 'none';
-    const out = document.getElementById('kplan-result-output');
     out.innerHTML = mdToHtml(raw);
     out.style.display = '';
     document.getElementById('kplan-save-row').style.display = 'flex';
@@ -660,17 +681,34 @@ async function _kplanRecompose() {
   await _ensureKPlanLogin();
   const btn = document.getElementById('kplan-recompose-btn');
   btn.disabled = true;
+  const loadingTextEl = document.getElementById('kplan-recompose-loading-text');
+  loadingTextEl.textContent = 'K-Recompose가 빠르게 초안을 검토하는 중입니다…';
   document.getElementById('kplan-recompose-loading').style.display = 'flex';
   document.getElementById('kplan-recompose-err').style.display = 'none';
 
-  const messages = [..._kplanCurrentMessages, {
+  const baseMessages = [..._kplanCurrentMessages, {
     role: 'user',
     content: `[체크포인트 — 지금까지의 실행 결과]\n${text}\n\n이 결과를 근거로, 아직 실행하지 않은 나머지 계획을 재검토해 갱신해 주세요. 이미 끝난 부분은 다시 열지 말고, 무엇을 왜 바꾸는지 설명해 주세요.`,
   }];
+  const detailOut = document.getElementById('kplan-detail-output');
 
   try {
-    const raw = await _kplanRelayCall('kplan-pro', messages, { maxTokens: 2200, generationType: 'recompose' });
-    messages.push({ role: 'assistant', content: raw });
+    // ── 1단계 — flash로 빠른 초안. 저장 이력에는 안 남긴다.
+    const draft = await _kplanRelayCall('kplan-flash', baseMessages, { maxTokens: 1200, generationType: null });
+    detailOut.innerHTML = '<span class="badge badge-draft" style="margin-bottom:10px;display:inline-block">⚡ 빠른 초안 — 최종 검토 중</span>' + mdToHtml(draft);
+
+    // ── 2단계 — pro로 최종 검토. 응답이 느릴 수 있어 미리 고지한다.
+    loadingTextEl.textContent = 'K-Recompose가 최종 검토 중입니다 — 정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다…';
+
+    const reviewMessages = [
+      ...baseMessages,
+      { role: 'assistant', content: draft },
+      { role: 'user', content: '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획으로 작성해 주세요.' },
+    ];
+    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 2200, generationType: 'recompose' });
+
+    // 저장 이력은 초안 왕복 없이 유지 — 체크포인트 사용자 발화 다음 곧바로 최종 답변.
+    const messages = [...baseMessages, { role: 'assistant', content: raw }];
 
     const saveRes = await fetch(PROXY + '/kplan/plan/checkpoint', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -683,7 +721,7 @@ async function _kplanRecompose() {
     if (!saveRes.ok || !saveData.ok) throw new Error(saveData.message || '저장에 실패했습니다.');
 
     _kplanCurrentMessages = messages;
-    document.getElementById('kplan-detail-output').innerHTML = mdToHtml(raw);
+    detailOut.innerHTML = mdToHtml(raw);
     document.getElementById('kplan-detail-checkpoints').textContent = saveData.plan.checkpoint_count;
     input.value = '';
   } catch (e) {
