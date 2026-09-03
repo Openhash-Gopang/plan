@@ -146,7 +146,7 @@ textarea:focus{outline:none;border-color:var(--pri-lt)}
       <div id="kplan-login-step-devlink" style="display:none">
         <div class="kplan-login-devlink-wait">
           <div class="spinner" style="width:22px;height:22px;border-width:3px;margin:0 auto 12px"></div>
-          <div id="kplan-devlink-status" style="font-size:12.5px;color:var(--sub);text-align:center">승인 요청 메시지를 보냈습니다. 지금, 폰을 열고, 알림 메시지를 확인해 주세요.</div>
+          <div id="kplan-devlink-status" style="font-size:12.5px;color:var(--sub);text-align:center">스마트폰 알림을 확인해 주세요…</div>
           <div id="kplan-devlink-timer" style="font-size:11px;color:var(--hint);text-align:center;margin-top:4px"></div>
         </div>
         <div class="kplan-login-resend"><a onclick="_kplanLoginResetPhoneStep()">번호를 다시 입력할게요</a></div>
@@ -374,9 +374,9 @@ async function _kplanLoginStartDeviceLink() {
 
     const statusEl = document.getElementById('kplan-devlink-status');
     if (data.hasMobileDevice === false) {
-      statusEl.textContent = '이 번호로 연결된 스마트폰이 없습니다. 먼저 hondi 앱에 폰으로 로그인해 주세요.';
+      statusEl.textContent = '이 번호로 연결된 스마트폰이 없습니다 — 아래에서 문자로 받아 주세요.';
     } else {
-      statusEl.textContent = '승인 요청 메시지를 보냈습니다. 지금, 폰을 열고, 알림 메시지를 확인해 주세요.';
+      statusEl.textContent = '스마트폰 알림을 확인해 주세요…';
     }
 
     _kplanDevlinkStartCountdown(data.expires_in || 90);
@@ -589,7 +589,7 @@ async function _kplanSubmitNew() {
   try {
     // flash로 빠른 초안(속도 우선). pro 최종 검토는 사용자가 버튼을
     // 눌러야만 이어서 실행된다(자동 연쇄 안 함 — 주피터 지시, 2026-09-03).
-    const draft = await _kplanRelayCall('kplan-flash', messages, { maxTokens: 1200, generationType: null });
+    const draft = await _kplanRelayCall('kplan-flash', messages, { maxTokens: 8000, generationType: null });
     out.innerHTML = '<span class="badge badge-draft" style="margin-bottom:10px;display:inline-block">⚡ 빠른 초안</span>' + mdToHtml(draft);
     out.style.display = '';
 
@@ -753,7 +753,7 @@ async function _kplanRecompose() {
   try {
     // flash로 빠른 초안. pro 최종 검토는 사용자가 버튼을 눌러야만
     // 이어서 실행된다(자동 연쇄 안 함 — 주피터 지시, 2026-09-03).
-    const draft = await _kplanRelayCall('kplan-flash', baseMessages, { maxTokens: 1200, generationType: null });
+    const draft = await _kplanRelayCall('kplan-flash', baseMessages, { maxTokens: 8000, generationType: null });
     detailOut.innerHTML = '<span class="badge badge-draft" style="margin-bottom:10px;display:inline-block">⚡ 빠른 초안</span>' + mdToHtml(draft);
 
     _kplanPendingRecomposeBaseMessages = baseMessages;
