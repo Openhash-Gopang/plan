@@ -124,6 +124,20 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
 .chat-bubble-row.user{align-items:flex-end}
 .chat-bubble-row.assistant{align-items:flex-start}
 .chat-bubble{max-width:100%;font-size:13.5px;line-height:1.8}
+
+/* 작업 보드(칸반) — 2026-09-03 신설. K-Mail 연동 없는 순수 태스크 관리. */
+.task-board{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.task-col{background:var(--bg);border-radius:var(--r);padding:8px;min-width:170px;flex:0 0 170px}
+.task-col-title{font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;padding:0 2px}
+.task-card{background:var(--sur);border:1px solid var(--bdr);border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:12px;box-shadow:var(--sh)}
+.task-card-title{font-weight:700}
+.task-card-meta{display:flex;align-items:center;gap:6px;margin-top:6px}
+.task-priority{font-size:9.5px;padding:1px 6px;border-radius:8px;font-weight:700;white-space:nowrap}
+.task-priority-low{background:#EDEFF3;color:var(--sub)}
+.task-priority-medium{background:var(--pri-bg);color:var(--pri)}
+.task-priority-high{background:var(--obg);color:var(--org)}
+.task-priority-urgent{background:var(--rbg);color:var(--red)}
+.task-status-select{font-size:10.5px;border:1px solid var(--bdr);border-radius:5px;padding:2px 4px;background:#fff;flex:1;min-width:0}
 .chat-bubble-row.user .chat-bubble{background:var(--pri);color:#fff;padding:10px 15px;border-radius:16px;border-bottom-right-radius:4px;white-space:pre-wrap;word-break:break-word;max-width:88%}
 .chat-bubble-row.assistant .chat-bubble{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;width:100%}
 .chat-bubble-row.assistant .chat-bubble h1,.chat-bubble-row.assistant .chat-bubble h2,.chat-bubble-row.assistant .chat-bubble h3{margin:14px 0 7px;font-weight:800;color:var(--txt)}
@@ -236,6 +250,16 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
 
     <div class="hint" id="kplan-new-autosave-status" style="display:none"></div>
 
+    <div class="card" id="kplan-new-taskboard-card" style="display:none;margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <h2 style="margin:0">작업 보드</h2>
+        <button class="btn btn-outline" id="kplan-new-taskboard-gen-btn" onclick="_kplanGenerateTaskBoard('new')" style="font-size:12px;padding:7px 14px">계획을 작업으로 변환</button>
+      </div>
+      <div id="kplan-new-taskboard-loading" class="loading-row" style="display:none"><span class="spinner"></span>작업 목록을 만드는 중입니다…</div>
+      <div id="kplan-new-taskboard-empty" style="display:none;font-size:12.5px;color:var(--hint)">아직 작업이 없습니다 — "계획을 작업으로 변환" 버튼을 눌러 만들어보세요.</div>
+      <div id="kplan-new-taskboard-cols" class="task-board"></div>
+    </div>
+
     <div class="chat-composer">
       <div class="chat-attachments" id="kplan-new-attachments"></div>
       <div class="chat-inputbar">
@@ -272,6 +296,16 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
         <h2 id="kplan-detail-title">플랜 상세</h2>
         <div class="sub"><span id="kplan-detail-status" class="badge badge-active">진행 중</span> · 체크포인트 <span id="kplan-detail-checkpoints">0</span>회 · plan_id: <code id="kplan-detail-planid" style="font-family:'SFMono-Regular',Consolas,monospace"></code></div>
         <a onclick="_kplanBackToList()" style="font-size:12px;color:var(--pri);cursor:pointer;text-decoration:underline">← 목록으로</a>
+      </div>
+
+      <div class="card" id="kplan-mine-taskboard-card" style="display:none;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <h2 style="margin:0">작업 보드</h2>
+          <button class="btn btn-outline" id="kplan-mine-taskboard-gen-btn" onclick="_kplanGenerateTaskBoard('mine')" style="font-size:12px;padding:7px 14px">계획을 작업으로 변환</button>
+        </div>
+        <div id="kplan-mine-taskboard-loading" class="loading-row" style="display:none"><span class="spinner"></span>작업 목록을 만드는 중입니다…</div>
+        <div id="kplan-mine-taskboard-empty" style="display:none;font-size:12.5px;color:var(--hint)">아직 작업이 없습니다 — "계획을 작업으로 변환" 버튼을 눌러 만들어보세요.</div>
+        <div id="kplan-mine-taskboard-cols" class="task-board"></div>
       </div>
 
       <div class="chat-thread" id="kplan-mine-thread"></div>
@@ -872,6 +906,7 @@ async function _kplanChatPersist(prefix) {
       if (!res.ok || !data.ok) throw new Error(data.message || '저장에 실패했습니다.');
       st.planId = data.plan.plan_id;
       if (prefix === 'new') localStorage.setItem('kplan_active_plan_id', st.planId);
+      _kplanShowTaskBoard(prefix);
     } else {
       const res = await fetch(PROXY + '/kplan/plan/checkpoint', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -918,6 +953,7 @@ async function _kplanChatTryResume() {
     st.planId = p.plan_id;
     st.goal = p.goal || p.title || '';
     st.messages = (p.messages && p.messages.length) ? p.messages : [_kplanBuildSystemMessage()];
+    _kplanShowTaskBoard('new');
 
     document.getElementById('kplan-new-landing').style.display = 'none';
     document.getElementById('kplan-new-thread').innerHTML = '';
@@ -953,6 +989,7 @@ function _kplanChatStartNew() {
   document.getElementById('kplan-new-final-hint').style.display = 'none';
   document.getElementById('kplan-new-thread-header').style.display = 'none';
   document.getElementById('kplan-new-autosave-status').style.display = 'none';
+  document.getElementById('kplan-new-taskboard-card').style.display = 'none';
   document.getElementById('kplan-new-input').placeholder = '예: 3년 안에 지금 회사에서 시니어로 승진하고 싶다. 매주 야근을 자원하고 팀장에게 분기마다 성과를 어필하려고 한다';
 }
 
@@ -997,6 +1034,108 @@ function _kplanBackToList() {
   document.getElementById('kplan-detail-card').style.display = 'none';
 }
 
+// ══════════════════════════════════════════════════════════════
+// 작업 보드(kplan_tasks) — 2026-09-03 신설. 순수 태스크 관리만 다룬다
+// (K-Mail 연동은 이 범위 밖 — 별도 지시서로 K-Mail 쪽에 넘김).
+// ══════════════════════════════════════════════════════════════
+const KPLAN_TASK_COLUMNS = [
+  ['backlog', 'Backlog'], ['todo', 'To Do'], ['in_progress', 'In Progress'],
+  ['in_review', 'In Review'], ['done', 'Done'],
+];
+
+function _kplanShowTaskBoard(prefix) {
+  document.getElementById(`kplan-${prefix}-taskboard-card`).style.display = '';
+  _kplanLoadTaskBoard(prefix);
+}
+
+async function _kplanGenerateTaskBoard(prefix) {
+  const st = _kplanChat[prefix];
+  if (!st.planId || !st.messages.length) return;
+  const lastAssistant = [...st.messages].reverse().find(m => m.role === 'assistant');
+  if (!lastAssistant) { alert('먼저 계획서를 만들어 주세요.'); return; }
+
+  const genBtn = document.getElementById(`kplan-${prefix}-taskboard-gen-btn`);
+  genBtn.disabled = true;
+  document.getElementById(`kplan-${prefix}-taskboard-loading`).style.display = 'flex';
+  document.getElementById(`kplan-${prefix}-taskboard-empty`).style.display = 'none';
+
+  try {
+    // 별도의 1회성 flash 호출로 계획서를 구조화된 작업 목록(JSON)으로
+    // 변환한다 — 메인 대화 흐름(_kplanChat)과 분리된 임시 호출이라
+    // st.messages에는 안 남긴다.
+    const convMessages = [
+      _kplanBuildSystemMessage(),
+      { role: 'user', content: `다음 계획서를 실행 가능한 작업 목록으로 변환해 주세요. 다른 설명 없이 JSON 배열만 출력하세요. 각 항목 형식: {"title":"...", "description":"...", "status":"backlog|todo|in_progress|in_review|done", "priority":"low|medium|high|urgent", "labels":["..."], "progress":0}\n\n[계획서]\n${lastAssistant.content}` },
+    ];
+    const raw = await _kplanRelayCall('kplan-flash', convMessages, { maxTokens: 4000, generationType: null });
+    const jsonMatch = raw.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error('작업 목록 형식을 인식하지 못했습니다.');
+    const tasks = JSON.parse(jsonMatch[0]);
+
+    const res = await fetch(PROXY + '/kplan/task/bulk-create', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone_verify_token: kplanPhoneVerifyToken, plan_id: st.planId, tasks }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.message || '작업 생성에 실패했습니다.');
+
+    await _kplanLoadTaskBoard(prefix);
+  } catch (e) {
+    alert('작업 보드 생성 실패: ' + e.message);
+  } finally {
+    document.getElementById(`kplan-${prefix}-taskboard-loading`).style.display = 'none';
+    genBtn.disabled = false;
+  }
+}
+
+async function _kplanLoadTaskBoard(prefix) {
+  const st = _kplanChat[prefix];
+  if (!st.planId) return;
+  try {
+    const res = await fetch(PROXY + `/kplan/task/list?plan_id=${encodeURIComponent(st.planId)}&phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) return;
+    _kplanRenderTaskBoard(prefix, data.items || []);
+  } catch (e) { /* 조용히 무시 — 보드는 부가 기능, 본 흐름을 막지 않음 */ }
+}
+
+function _kplanRenderTaskBoard(prefix, tasks) {
+  const container = document.getElementById(`kplan-${prefix}-taskboard-cols`);
+  const emptyEl = document.getElementById(`kplan-${prefix}-taskboard-empty`);
+  if (!tasks.length) { container.innerHTML = ''; emptyEl.style.display = ''; return; }
+  emptyEl.style.display = 'none';
+
+  container.innerHTML = KPLAN_TASK_COLUMNS.map(([statusKey, label]) => {
+    const colTasks = tasks.filter(t => t.status === statusKey);
+    const cards = colTasks.map(t => `
+      <div class="task-card">
+        <div class="task-card-title">${escHtml(t.title)}</div>
+        ${t.description ? `<div style="color:var(--hint);font-size:11px;margin-top:2px">${escHtml(t.description)}</div>` : ''}
+        <div class="task-card-meta">
+          <span class="task-priority task-priority-${escHtml(t.priority || 'medium')}">${escHtml(t.priority || 'medium')}</span>
+          <select class="task-status-select" onchange="_kplanUpdateTaskStatus('${prefix}', '${t.id}', this.value)">
+            ${KPLAN_TASK_COLUMNS.map(([sk, sl]) => `<option value="${sk}" ${sk === t.status ? 'selected' : ''}>${sl}</option>`).join('')}
+          </select>
+        </div>
+      </div>`).join('');
+    return `<div class="task-col"><div class="task-col-title">${label} (${colTasks.length})</div>${cards}</div>`;
+  }).join('');
+}
+
+async function _kplanUpdateTaskStatus(prefix, taskId, newStatus) {
+  try {
+    const res = await fetch(PROXY + '/kplan/task/update', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone_verify_token: kplanPhoneVerifyToken, task_id: taskId, status: newStatus }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.message || '상태 변경에 실패했습니다.');
+    await _kplanLoadTaskBoard(prefix);
+  } catch (e) {
+    alert('작업 상태 변경 실패: ' + e.message);
+  }
+}
+
 async function _kplanOpenPlan(planId) {
   try {
     const res = await fetch(PROXY + `/kplan/plan/get?plan_id=${encodeURIComponent(planId)}&phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
@@ -1018,6 +1157,7 @@ async function _kplanOpenPlan(planId) {
     st.planId = p.plan_id;
     st.goal = p.goal || p.title || '';
     st.messages = p.messages && p.messages.length ? p.messages : [_kplanBuildSystemMessage()];
+    _kplanShowTaskBoard('mine');
     (st.messages || []).forEach(m => {
       if (m.role === 'user') _kplanChatAppendBubble('mine', 'user', { text: m.content });
       else if (m.role === 'assistant') _kplanChatAppendBubble('mine', 'assistant', { md: m.content });
