@@ -624,7 +624,7 @@ async function _kplanFinalReview() {
       { role: 'assistant', content: _kplanPendingComposeDraft },
       { role: 'user', content: '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획서로 작성해 주세요.' },
     ];
-    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 6000, generationType: 'compose' });
+    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 16000, generationType: 'compose' });
 
     // 저장 이력은 초안 왕복 없이 [system, user, assistant(최종)]로 깔끔하게 유지.
     messages.push({ role: 'assistant', content: raw });
@@ -787,7 +787,7 @@ async function _kplanRecomposeFinalReview() {
       { role: 'assistant', content: _kplanPendingRecomposeDraft },
       { role: 'user', content: '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획으로 작성해 주세요.' },
     ];
-    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 6000, generationType: 'recompose' });
+    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 16000, generationType: 'recompose' });
 
     // 저장 이력은 초안 왕복 없이 유지 — 체크포인트 사용자 발화 다음 곧바로 최종 답변.
     const messages = [...baseMessages, { role: 'assistant', content: raw }];
