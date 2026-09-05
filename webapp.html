@@ -247,9 +247,15 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
     <div class="errbox" id="kplan-new-err" style="display:none"></div>
 
     <div class="btn-row" id="kplan-new-final-row" style="display:none">
-      <button class="btn btn-primary" id="kplan-new-final-btn" onclick="_kplanChatFinalReview('new')">최종 검토 및 최종 계획서 작성</button>
+      <button class="btn btn-primary" id="kplan-new-final-btn" onclick="_kplanChatFinalReview('new','kplan-flash')">최종 계획서로 확정</button>
     </div>
-    <div class="hint" id="kplan-new-final-hint" style="display:none">정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다.</div>
+    <div class="hint" id="kplan-new-final-hint" style="display:none">flash 모델로 빠르게 최종 계획서를 작성합니다. 확정 후에도 필요하면 pro 모델로 한 번 더 정밀하게 다듬을 수 있습니다.</div>
+
+    <div class="btn-row" id="kplan-new-postfinal-row" style="display:none;gap:8px">
+      <button class="btn btn-outline" id="kplan-new-download-btn" onclick="_kplanDownloadFinal('new')">⬇ 최종본 다운로드</button>
+      <button class="btn btn-outline" id="kplan-new-proreview-btn" onclick="_kplanChatFinalReview('new','kplan-pro')">🔬 pro 모델로 정밀 재검토(선택)</button>
+    </div>
+    <div class="hint" id="kplan-new-postfinal-hint" style="display:none">pro 재검토는 선택 사항입니다 — flash보다 더 정확하지만 응답까지 최대 5분 걸릴 수 있고, 호출 비용의 일부가 GDC 잔액에서 추가로 청구됩니다.</div>
 
     <div class="hint" id="kplan-new-autosave-status" style="display:none"></div>
 
@@ -301,6 +307,23 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
         <a onclick="_kplanBackToList()" style="font-size:12px;color:var(--pri);cursor:pointer;text-decoration:underline">← 목록으로</a>
       </div>
 
+      <!-- 2026-09-05 신설 — 최종본(status='completed')인 플랜을 열면 전체
+           대화 이력을 처음부터 다시 스크롤하게 하는 대신, 최종 계획서와
+           오늘의 데일리 체크리스트를 바로 위에 보여준다. 진행 중인
+           플랜은 이 카드가 숨겨지고 기존처럼 대화창이 먼저 보인다. -->
+      <div class="card" id="kplan-detail-finalcard" style="display:none;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+          <span class="badge badge-final">✅ 최종본</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:6px 12px" onclick="_kplanDownloadFinal('mine')">⬇ 다운로드</button>
+        </div>
+        <div id="kplan-detail-finalmd" style="font-size:13.5px;line-height:1.65"></div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)">
+          <div style="font-weight:700;font-size:13px;margin-bottom:8px">📋 오늘의 체크리스트</div>
+          <div class="sub" style="margin-bottom:8px">계획은 확정으로 끝나지 않습니다 — 매일 진행 상황을 확인하고, 아래 입력창으로 결과를 알려주시면 K-Recompose가 계획을 계속 갱신합니다.</div>
+          <div id="kplan-detail-dailycheck" style="font-size:13px;line-height:1.6"><span class="spinner"></span> 오늘의 체크리스트를 만드는 중…</div>
+        </div>
+      </div>
+
       <div class="card" id="kplan-mine-taskboard-card" style="display:none;margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
           <h2 style="margin:0">작업 보드</h2>
@@ -317,9 +340,15 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
       <div class="errbox" id="kplan-mine-err" style="display:none"></div>
 
       <div class="btn-row" id="kplan-mine-final-row" style="display:none">
-        <button class="btn btn-primary" id="kplan-mine-final-btn" onclick="_kplanChatFinalReview('mine')">최종 검토 및 최종 계획서 작성</button>
+        <button class="btn btn-primary" id="kplan-mine-final-btn" onclick="_kplanChatFinalReview('mine','kplan-flash')">최종 계획서로 확정</button>
       </div>
-      <div class="hint" id="kplan-mine-final-hint" style="display:none">정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다.</div>
+      <div class="hint" id="kplan-mine-final-hint" style="display:none">flash 모델로 빠르게 최종 계획서를 작성합니다. 확정 후에도 필요하면 pro 모델로 한 번 더 정밀하게 다듬을 수 있습니다.</div>
+
+      <div class="btn-row" id="kplan-mine-postfinal-row" style="display:none;gap:8px">
+        <button class="btn btn-outline" id="kplan-mine-download-btn" onclick="_kplanDownloadFinal('mine')">⬇ 최종본 다운로드</button>
+        <button class="btn btn-outline" id="kplan-mine-proreview-btn" onclick="_kplanChatFinalReview('mine','kplan-pro')">🔬 pro 모델로 정밀 재검토(선택)</button>
+      </div>
+      <div class="hint" id="kplan-mine-postfinal-hint" style="display:none">pro 재검토는 선택 사항입니다 — flash보다 더 정확하지만 응답까지 최대 5분 걸릴 수 있고, 호출 비용의 일부가 GDC 잔액에서 추가로 청구됩니다.</div>
 
       <div class="chat-composer">
         <div class="chat-attachments" id="kplan-mine-attachments"></div>
@@ -336,7 +365,7 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
           </button>
         </div>
-        <div class="hint">실행 결과나 피드백을 입력하면 K-Recompose가 flash로 빠르게 초안을 반영합니다. "최종 검토"를 누르면 pro가 다듬어 자동으로 체크포인트에 저장합니다.</div>
+        <div class="hint">진행 상황이나 피드백을 입력하면 K-Recompose가 flash로 반영합니다 — 매일 업데이트해서 계획을 계속 최신 상태로 유지하세요.</div>
       </div>
     </div>
   </div>
@@ -739,9 +768,9 @@ function _switchTab(name) {
 // ══════════════════════════════════════════════════════════════
 const _kplanChat = {
   new:  { messages: [], attachments: [], recognizing: false, recognition: null,
-          pendingFinalBase: null, pendingFinalDraft: '', goal: '', planId: null, abortController: null },
+          pendingFinalBase: null, pendingFinalDraft: '', goal: '', planId: null, abortController: null, finalMd: '' },
   mine: { messages: [], attachments: [], recognizing: false, recognition: null,
-          pendingFinalBase: null, pendingFinalDraft: '', goal: '', planId: null, abortController: null },
+          pendingFinalBase: null, pendingFinalDraft: '', goal: '', planId: null, abortController: null, finalMd: '' },
 };
 
 // 정지(stop) 버튼용 아이콘 — 전송 화살표와 동일한 자리에 토글해서 넣는다.
@@ -892,10 +921,12 @@ function _kplanChatAppendBubble(prefix, role, opts) {
 function _kplanChatReset(prefix) {
   const st = _kplanChat[prefix];
   if (st.abortController) { st.abortController.abort(); st.abortController = null; } // 새 대화 시작 시 진행 중이던 요청이 있으면 정리
-  st.messages = []; st.attachments = []; st.pendingFinalBase = null; st.pendingFinalDraft = ''; st.goal = ''; st.planId = null;
+  st.messages = []; st.attachments = []; st.pendingFinalBase = null; st.pendingFinalDraft = ''; st.goal = ''; st.planId = null; st.finalMd = '';
   document.getElementById(`kplan-${prefix}-thread`).innerHTML = '';
   _kplanChatRenderAttachments(prefix);
   document.getElementById(`kplan-${prefix}-input`).value = '';
+  document.getElementById(`kplan-${prefix}-postfinal-row`).style.display = 'none';
+  document.getElementById(`kplan-${prefix}-postfinal-hint`).style.display = 'none';
   _kplanChatSetBusy(prefix, false);
   _kplanChatUpdateSendState(prefix);
 }
@@ -941,6 +972,8 @@ async function _kplanChatSend(prefix) {
   sendBtn.disabled = true; loading.style.display = 'flex'; err.style.display = 'none';
   document.getElementById(`kplan-${prefix}-final-row`).style.display = 'none';
   document.getElementById(`kplan-${prefix}-final-hint`).style.display = 'none';
+  document.getElementById(`kplan-${prefix}-postfinal-row`).style.display = 'none';
+  document.getElementById(`kplan-${prefix}-postfinal-hint`).style.display = 'none';
   _kplanScrollToBottom();
 
   const controller = new AbortController();
@@ -972,60 +1005,93 @@ async function _kplanChatSend(prefix) {
   }
 }
 
-async function _kplanChatFinalReview(prefix) {
+// tier: 'kplan-flash'(기본 — 빠르게 최종본 확정) 또는 'kplan-pro'(선택 —
+// 이미 있는 최종본을 더 정밀하게 재검토). 2026-09-05 개정(주피터 지시) —
+// 이전엔 "최종 검토"가 항상 pro를 호출해 매번 최대 5분이 걸렸다. pro가
+// 굳이 필요 없는 경우가 대부분이라 기본을 flash로 바꾸고, pro는 확정된
+// 최종본이 마음에 안 들 때 선택적으로 한 번 더 누르는 별도 버튼으로 뺐다.
+async function _kplanChatFinalReview(prefix, tier = 'kplan-flash') {
   const st = _kplanChat[prefix];
   if (!st.pendingFinalBase) return;
+  const isPro = tier === 'kplan-pro';
   const finalBtn = document.getElementById(`kplan-${prefix}-final-btn`);
+  const proBtn   = document.getElementById(`kplan-${prefix}-proreview-btn`);
   const loading  = document.getElementById(`kplan-${prefix}-loading`);
   const err      = document.getElementById(`kplan-${prefix}-err`);
-  finalBtn.disabled = true;
-  document.getElementById(`kplan-${prefix}-loading-text`).textContent = (prefix === 'new' ? 'K-Plan' : 'K-Recompose') + '이 최종 검토 중입니다 — 정확한 검토를 위해 pro 모델을 사용하며, 응답까지 5분 정도 걸릴 수 있습니다…';
+  finalBtn.disabled = true; if (proBtn) proBtn.disabled = true;
+  document.getElementById(`kplan-${prefix}-loading-text`).textContent = isPro
+    ? (prefix === 'new' ? 'K-Plan' : 'K-Recompose') + '이 pro 모델로 정밀 재검토 중입니다 — 응답까지 5분 정도 걸릴 수 있습니다…'
+    : (prefix === 'new' ? 'K-Plan' : 'K-Recompose') + '이 최종 계획서를 작성하는 중입니다…';
   loading.style.display = 'flex'; err.style.display = 'none';
 
-  // 2026-09-05 신설 — pro 모델은 최대 5분 걸릴 수 있어(위 안내 문구),
-  // 그동안 입력창의 전송 버튼을 정지 버튼으로 바꿔둔다. 정지를 누르면
-  // 이 최종 검토 요청만 취소되고, 사용자는 바로 이어서 다른 내용을
-  // 입력해 보낼 수 있다(_kplanChatSend와 동일한 st.abortController를
-  // 공유 — 두 함수가 동시에 도는 걸 방지하는 효과도 있다).
+  // pro 모델은 최대 5분 걸릴 수 있어, 그동안 입력창의 전송 버튼을 정지
+  // 버튼으로 바꿔둔다. 정지를 누르면 이 요청만 취소되고, 사용자는 바로
+  // 이어서 다른 내용을 입력해 보낼 수 있다(_kplanChatSend와 동일한
+  // st.abortController를 공유 — 두 함수가 동시에 도는 걸 방지하는
+  // 효과도 있다).
   const controller = new AbortController();
   st.abortController = controller;
   _kplanChatSetBusy(prefix, true);
 
   try {
+    const instruction = isPro
+      ? '방금 확정한 최종 계획서를 pro 모델로 한 번 더 정밀하게 검토해, 미비점을 더 보완한 계획서로 다시 작성해 주세요.'
+      : '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획서로 작성해 주세요.';
     const reviewMessages = [
       ...st.pendingFinalBase,
       { role: 'assistant', content: st.pendingFinalDraft },
-      { role: 'user', content: '방금 낸 초안을 최종 검토해 미비점을 더 보완하고, 다듬은 완성된 계획서로 작성해 주세요.' },
+      { role: 'user', content: instruction },
     ];
-    const raw = await _kplanRelayCall('kplan-pro', reviewMessages, { maxTokens: 16000, generationType: prefix === 'new' ? 'compose' : 'recompose', planId: st.planId, signal: controller.signal });
+    const raw = await _kplanRelayCall(tier, reviewMessages, { maxTokens: 16000, generationType: prefix === 'new' ? 'compose' : 'recompose', planId: st.planId, signal: controller.signal });
 
     st.messages = [...st.pendingFinalBase, { role: 'assistant', content: raw }];
+    st.pendingFinalDraft = raw; // pro 재검토를 다시 누르면 이번 결과를 기준으로 더 다듬는다
+    st.finalMd = raw;
 
-    // 방금 올린 초안 버블을 최종본으로 교체해 대화창을 깔끔하게 유지한다.
+    // 방금 올린 초안(또는 이전 최종본) 버블을 최신 최종본으로 교체해
+    // 대화창을 깔끔하게 유지한다.
     const thread = document.getElementById(`kplan-${prefix}-thread`);
     const lastAssistantRow = thread.querySelectorAll('.chat-bubble-row.assistant');
     const lastRow = lastAssistantRow[lastAssistantRow.length - 1];
     if (lastRow) {
-      lastRow.querySelector('.chat-bubble').innerHTML = `<span class="badge badge-final chat-bubble-badge">✅ 최종본</span>` + mdToHtml(raw);
+      lastRow.querySelector('.chat-bubble').innerHTML = `<span class="badge badge-final chat-bubble-badge">✅ 최종본${isPro ? ' (pro 재검토)' : ''}</span>` + mdToHtml(raw);
     } else {
-      _kplanChatAppendBubble(prefix, 'assistant', { md: raw, badge: { cls: 'badge-final', label: '✅ 최종본' } });
+      _kplanChatAppendBubble(prefix, 'assistant', { md: raw, badge: { cls: 'badge-final', label: `✅ 최종본${isPro ? ' (pro 재검토)' : ''}` } });
     }
 
     document.getElementById(`kplan-${prefix}-final-row`).style.display = 'none';
     document.getElementById(`kplan-${prefix}-final-hint`).style.display = 'none';
+    document.getElementById(`kplan-${prefix}-postfinal-row`).style.display = 'flex';
+    document.getElementById(`kplan-${prefix}-postfinal-hint`).style.display = '';
 
-    await _kplanChatPersist(prefix);
+    await _kplanChatPersist(prefix, 'completed');
   } catch (e) {
     if (e.name !== 'AbortError') { err.className = 'errbox'; err.textContent = '⚠ ' + e.message; err.style.display = ''; }
-    // AbortError면 조용히 종료 — 초안은 그대로 남아있고 "최종 검토" 버튼도
-    // 다시 눌러 재시도할 수 있다(아래 finally에서 복구).
+    // AbortError면 조용히 종료 — 이전 상태(초안 또는 이전 최종본)는 그대로
+    // 남아있고 버튼도 다시 눌러 재시도할 수 있다(아래 finally에서 복구).
   } finally {
     st.abortController = null;
     _kplanChatSetBusy(prefix, false);
     loading.style.display = 'none';
-    finalBtn.disabled = false;
+    finalBtn.disabled = false; if (proBtn) proBtn.disabled = false;
     _kplanScrollToBottom();
   }
+}
+
+// 최종본을 .md 파일로 다운로드 — 서버 왕복 없이 브라우저에서 바로
+// 처리한다(2026-09-05 신설, 주피터 지시 — 최종본을 확인만 하고 어디에도
+// 못 가져가던 문제).
+function _kplanDownloadFinal(prefix) {
+  const st = _kplanChat[prefix];
+  const md = st.finalMd || st.pendingFinalDraft;
+  if (!md) { alert('아직 다운로드할 최종본이 없습니다.'); return; }
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const safeTitle = (st.goal || '혼디_계획서').replace(/[\\/:*?"<>|\n\r]/g, ' ').trim().slice(0, 50) || '혼디_계획서';
+  const a = document.createElement('a');
+  a.href = url; a.download = `${safeTitle}.md`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1038,7 +1104,7 @@ async function _kplanChatFinalReview(prefix) {
 // 실패해도 사용자의 대화 흐름을 막지 않고 조용히 넘어간다 — 다음 턴에서
 // 다시 시도된다.
 // ══════════════════════════════════════════════════════════════
-async function _kplanChatPersist(prefix) {
+async function _kplanChatPersist(prefix, status = null) {
   const st = _kplanChat[prefix];
   if (!st.messages.length) return;
   const refinedMd = st.messages[st.messages.length - 1].content;
@@ -1064,12 +1130,19 @@ async function _kplanChatPersist(prefix) {
         body: JSON.stringify({
           phone_verify_token: kplanPhoneVerifyToken, plan_id: st.planId,
           messages: st.messages, refined_plan_md: refinedMd,
+          // 2026-09-05 신설 — 최종본(flash/pro 재검토) 확정 시 'completed'로
+          // 넘겨 "내 플랜" 목록·카드에서 최종본임을 표시할 수 있게 한다.
+          ...(status ? { status } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) throw new Error(data.message || '저장에 실패했습니다.');
       const cpEl = document.getElementById('kplan-detail-checkpoints');
       if (prefix === 'mine' && cpEl && data.plan) cpEl.textContent = data.plan.checkpoint_count;
+      if (prefix === 'mine' && status && data.plan) {
+        const statusEl = document.getElementById('kplan-detail-status');
+        if (statusEl) { statusEl.className = 'badge badge-' + status; statusEl.textContent = status === 'completed' ? '✅ 최종본' : status === 'active' ? '진행 중' : '중단'; }
+      }
     }
     _kplanChatShowAutoSaveStatus(prefix);
   } catch (e) {
@@ -1117,8 +1190,14 @@ async function _kplanChatTryResume() {
     if (last && last.role === 'assistant') {
       st.pendingFinalBase = st.messages.slice(0, -1);
       st.pendingFinalDraft = last.content;
-      document.getElementById('kplan-new-final-row').style.display = 'flex';
-      document.getElementById('kplan-new-final-hint').style.display = '';
+      if (p.status === 'completed') {
+        st.finalMd = p.refined_plan_md || last.content;
+        document.getElementById('kplan-new-postfinal-row').style.display = 'flex';
+        document.getElementById('kplan-new-postfinal-hint').style.display = '';
+      } else {
+        document.getElementById('kplan-new-final-row').style.display = 'flex';
+        document.getElementById('kplan-new-final-hint').style.display = '';
+      }
     }
 
     document.getElementById('kplan-new-input').placeholder = '이어서 피드백이나 추가 요청을 입력하세요…';
@@ -1151,6 +1230,20 @@ _kplanChatTryResume();
 // ══════════════════════════════════════════════════════════════
 // 내 플랜 목록 / 상세
 // ══════════════════════════════════════════════════════════════
+// 2026-09-05 신설 — 카드 메타 정보에 날짜를 짧게 표시하기 위한 포맷터.
+// 서버가 이미 PocketBase 표준 필드(updated)를 내려주고 있어 별도
+// 마이그레이션 없이 바로 쓸 수 있다.
+function _kplanFormatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const now = new Date();
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return sameYear
+    ? `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, '0')}`
+    : `${d.getFullYear()}.${d.getMonth() + 1}.${String(d.getDate()).padStart(2, '0')}`;
+}
+
 async function _kplanLoadMyPlans() {
   await _ensureKPlanLogin();
   document.getElementById('kplan-list-card').style.display = '';
@@ -1169,9 +1262,14 @@ async function _kplanLoadMyPlans() {
       const div = document.createElement('div');
       div.className = 'plan-list-item';
       div.onclick = () => _kplanOpenPlan(p.plan_id);
-      div.innerHTML = `<span class="badge badge-${escHtml(p.status||'active')}">${p.status==='active'?'진행 중':p.status==='completed'?'완료':'중단'}</span>
+      // 2026-09-05 개정 — 완료(최종본)는 대화 배지와 동일한 초록 계열
+      // badge-final(✅ 최종본)로, 날짜는 카드 메타에 함께 표시한다.
+      const badgeCls = p.status === 'completed' ? 'badge-final' : 'badge-' + (p.status || 'active');
+      const badgeLabel = p.status === 'completed' ? '✅ 최종본' : p.status === 'active' ? '진행 중' : '중단';
+      const dateStr = _kplanFormatDate(p.updated);
+      div.innerHTML = `<span class="badge ${badgeCls}">${badgeLabel}</span>
         <span class="pli-title">${escHtml(p.title || p.goal)}</span>
-        <span class="pli-meta">체크포인트 ${p.checkpoint_count||0}회</span>`;
+        <span class="pli-meta">${dateStr ? dateStr + ' · ' : ''}체크포인트 ${p.checkpoint_count||0}회</span>`;
       itemsEl.appendChild(div);
     });
   } catch (e) {
@@ -1320,13 +1418,14 @@ async function _kplanOpenPlan(planId) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) throw new Error(data.message || '플랜을 불러오지 못했습니다.');
     const p = data.plan;
+    const isCompleted = p.status === 'completed';
 
     document.getElementById('kplan-list-card').style.display = 'none';
     document.getElementById('kplan-detail-card').style.display = '';
     document.getElementById('kplan-detail-title').textContent = p.title || p.goal;
     const statusEl = document.getElementById('kplan-detail-status');
-    statusEl.className = 'badge badge-' + (p.status || 'active');
-    statusEl.textContent = p.status === 'active' ? '진행 중' : p.status === 'completed' ? '완료' : '중단';
+    statusEl.className = 'badge badge-' + (isCompleted ? 'final' : (p.status || 'active'));
+    statusEl.textContent = p.status === 'active' ? '진행 중' : isCompleted ? '✅ 최종본' : '중단';
     document.getElementById('kplan-detail-checkpoints').textContent = p.checkpoint_count || 0;
     document.getElementById('kplan-detail-planid').textContent = p.plan_id;
 
@@ -1340,9 +1439,45 @@ async function _kplanOpenPlan(planId) {
       if (m.role === 'user') _kplanChatAppendBubble('mine', 'user', { text: m.content });
       else if (m.role === 'assistant') _kplanChatAppendBubble('mine', 'assistant', { md: m.content });
     });
+
+    // 2026-09-05 신설(주피터 지시) — 최종본(completed) 플랜은 대화 이력을
+    // 처음부터 다시 훑게 하는 대신, 최종 계획서 + 오늘의 체크리스트를
+    // 상단에 바로 보여준다. 계획은 확정으로 끝나는 게 아니라 매일 갱신
+    // 대상이라는 걸 알리는 화면.
+    const finalCard = document.getElementById('kplan-detail-finalcard');
+    if (isCompleted && p.refined_plan_md) {
+      st.finalMd = p.refined_plan_md;
+      document.getElementById('kplan-detail-finalmd').innerHTML = mdToHtml(p.refined_plan_md);
+      finalCard.style.display = '';
+      document.getElementById('kplan-mine-postfinal-row').style.display = 'flex';
+      document.getElementById('kplan-mine-postfinal-hint').style.display = '';
+      _kplanGenerateDailyCheck('mine', p.refined_plan_md);
+    } else {
+      finalCard.style.display = 'none';
+    }
+
     document.getElementById('kplan-detail-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     alert('불러오기 실패: ' + e.message);
+  }
+}
+
+// 오늘의 체크리스트 — 확정된 최종본을 바탕으로 매번 새로 만든다(저장하지
+// 않음 — "오늘" 기준으로 매번 새로 보는 게 자연스럽고, 별도 저장 필드
+// 없이도 구현 가능해서 스키마 변경 없이 넣을 수 있었다). flash로만
+// 호출해 비용·시간 부담이 적다.
+async function _kplanGenerateDailyCheck(prefix, finalMd) {
+  const box = document.getElementById(`kplan-${prefix}-dailycheck`);
+  if (!box) return;
+  box.innerHTML = '<span class="spinner"></span> 오늘의 체크리스트를 만드는 중…';
+  try {
+    const md = await _kplanRelayCall('kplan-flash', [
+      { role: 'system', content: kplanSPText || KPLAN_SYSTEM_FALLBACK },
+      { role: 'user', content: `다음은 이미 확정된 최종 계획서입니다. 이 계획서를 실행하는 사람이 오늘 하루 스스로 점검할 수 있도록, 확인할 항목 4~6개짜리 짧은 체크리스트(마크다운 체크박스 형식)를 만들어 주세요. 계획서 내용을 반복 설명하지 말고 체크리스트만 출력하세요.\n\n[확정된 최종 계획서]\n${finalMd}` },
+    ], { maxTokens: 1200, generationType: null });
+    box.innerHTML = mdToHtml(md);
+  } catch (e) {
+    box.innerHTML = `<span style="color:var(--red)">체크리스트를 만들지 못했습니다: ${escHtml(e.message)}</span>`;
   }
 }
 </script>
