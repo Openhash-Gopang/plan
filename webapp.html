@@ -7,18 +7,15 @@
 <meta name="description" content="목표와 실행 방법을 채팅으로 입력하면 K-Plan이 미비점과 허점을 짚어 다듬은 계획서를 작성합니다. 대화를 이어가며 계획을 계속 갱신합니다.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%233D4FC4%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20font-family%3D%22%27Pretendard%27%2C%27Malgun%20Gothic%27%2Csans-serif%22%20font-size%3D%2234%22%20font-weight%3D%22700%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3EP%3C/text%3E%3C/svg%3E">
 
-<!-- 고팡 공통 인증(지갑 세션) — desktop.html 등과 동일한 표준 로드 방식 -->
-<!-- data-required="false" — 이 페이지의 실제 인증(과금 포함)은 별도의
-     전화번호 OTP 흐름(phone_verify_token)이 담당한다. 이 스크립트를
-     필수 모드로 두면, 로그인 세션 확인용 오프너 창 없이(직접 URL 방문
-     등) 페이지가 열렸을 때 hondi.net/auth/silent-auth.html과 무한
-     리다이렉트 루프에 빠진다 — silent-auth.html이 반환하는
-     ?gopang_token= 파라미터를 gopang-sso.js의 _tryGwpToken()이 기대하는
-     gwp_token과 이름이 달라 인식하지 못해 계속 재시도하는 것으로 보임
-     (플랫폼 공용 코드의 버그로 추정, 이 저장소 범위 밖이라 여기서는
-     건드리지 않음). optional 모드는 인증 실패 시 그냥 비로그인 상태로
-     통과하므로 이 루프 자체가 발생하지 않는다. -->
-<script type="module" src="https://hondi.net/auth/subsystem-auth.js" data-required="false"></script>
+<!-- K-서비스 공용 전화번호 인증 모듈 (2026-09-06 — 이 페이지 자체 구현을
+     대체) — 로그인하면 .hondi.net 쿠키로 klaw.hondi.net·mail.hondi.net 등
+     다른 K-서비스에도 자동 로그인된다. 기존 고팡 지갑 SSO
+     (subsystem-auth.js)는 크로스 도메인 릴레이 버그가 있어 더 이상
+     로드하지 않는다 — 주피터 지시, 2026-09-06. -->
+<script>
+window.K_AUTH_CONFIG = { serviceLabel: 'K-Plan' };
+</script>
+<script src="https://hondi.net/auth/k-service-auth-client.js"></script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
@@ -38,31 +35,6 @@ a{color:inherit}
 textarea,input{font-family:var(--font)}
 button{font-family:var(--font);cursor:pointer}
 
-/* 로그인 오버레이 — 2026-09-05 미니멀 리디자인(그라디언트 카드 제거,
-   아이콘+한 줄 안내문 + 입력창 오른쪽 아이콘 버튼 형태로 단순화) */
-#kplan-login-overlay{position:fixed;inset:0;z-index:9999;background:rgba(15,15,25,.45);display:none;align-items:center;justify-content:center;padding:24px}
-#kplan-login-overlay.show{display:flex}
-.kplan-login-box{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18);width:100%;max-width:340px;overflow:hidden}
-.kplan-login-body{padding:20px 20px 18px}
-.kplan-login-icon-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.kplan-login-icon{font-size:18px;line-height:1;flex-shrink:0}
-.kplan-login-desc{font-size:13px;color:var(--txt);line-height:1.5}
-.kplan-login-row{display:flex;gap:8px;margin-bottom:10px}
-.kplan-login-row input{flex:1;min-width:0;font-size:14px;padding:11px 12px;border:1px solid var(--bdr);border-radius:8px;color:var(--txt);background:#fff}
-.kplan-login-row input:focus{outline:none;border-color:var(--pri)}
-.kplan-login-row button{flex-shrink:0;font-size:13px;font-weight:700;color:#fff;background:var(--pri);border:none;border-radius:8px;padding:0 16px;white-space:nowrap}
-.kplan-login-row button:disabled{background:var(--hint);cursor:not-allowed}
-.kplan-login-input-wrap{position:relative;margin-bottom:10px}
-.kplan-login-input-wrap input{width:100%;box-sizing:border-box;font-size:14px;padding:11px 42px 11px 12px;border:1px solid var(--bdr);border-radius:8px;color:var(--txt);background:#fff}
-.kplan-login-input-wrap input:focus{outline:none;border-color:var(--pri)}
-.kplan-login-input-icon-btn{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:7px;background:var(--pri-bg);color:var(--pri);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s}
-.kplan-login-input-icon-btn:hover{background:var(--pri-bd)}
-.kplan-login-input-icon-btn:disabled{opacity:.5;cursor:not-allowed}
-.kplan-login-msg{font-size:12px;margin-top:10px;text-align:center;min-height:16px}
-.kplan-login-msg.err{color:var(--red)}
-.kplan-login-msg.ok{color:var(--grn)}
-.kplan-login-resend{font-size:11px;color:var(--hint);text-align:center;margin-top:10px}
-.kplan-login-resend a{color:var(--pri);cursor:pointer;text-decoration:underline}
 
 header{background:var(--nav);color:#fff;padding:0 20px;height:54px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.22)}
 header .logo{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px}
@@ -176,44 +148,6 @@ main{max-width:720px;margin:0 auto;padding:22px 18px 24px}
 </style>
 </head>
 <body>
-
-<div id="kplan-login-overlay">
-  <div class="kplan-login-box">
-    <div class="kplan-login-body">
-      <div class="kplan-login-icon-row">
-        <span class="kplan-login-icon">🧭</span>
-        <div class="kplan-login-desc" id="kplan-login-desc">휴대폰 번호 뒷자리 8자를 입력하십시오.</div>
-      </div>
-
-      <div id="kplan-login-step-phone">
-        <div class="kplan-login-input-wrap">
-          <input type="tel" id="kplan-login-phone" placeholder="전화번호 뒷 8자리" inputmode="numeric" maxlength="8" autocomplete="tel">
-          <button type="button" id="kplan-login-devlink-btn" class="kplan-login-input-icon-btn" onclick="_kplanLoginStartDeviceLink()" aria-label="폰으로 승인받기" title="폰으로 승인받기">📱</button>
-        </div>
-      </div>
-
-      <!-- device-link 대기 화면 — SMS 비용 없이 이미 로그인된 폰에 웹푸시로
-           승인 요청을 보내고, 폰에서 탭 한 번으로 승인되길 기다린다.
-           PC에서 코드를 입력할 필요가 없다 — 폰이 스스로 서명해 보낸다. -->
-      <div id="kplan-login-step-devlink" style="display:none">
-        <div class="kplan-login-devlink-wait">
-          <div class="spinner" style="width:22px;height:22px;border-width:3px;margin:0 auto 12px"></div>
-          <div id="kplan-devlink-status" style="font-size:12.5px;color:var(--sub);text-align:center">스마트폰 알림을 확인해 주세요…</div>
-          <div id="kplan-devlink-timer" style="font-size:11px;color:var(--hint);text-align:center;margin-top:4px"></div>
-        </div>
-        <div class="kplan-login-resend"><a onclick="_kplanLoginResetPhoneStep()">번호를 다시 입력할게요</a></div>
-      </div>
-
-      <div id="kplan-login-step-code" style="display:none">
-        <div class="kplan-login-row">
-          <input type="text" id="kplan-login-code" placeholder="인증번호 6자리" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
-          <button type="button" id="kplan-login-verify-btn" onclick="_kplanLoginVerifyOtp()">확인</button>
-        </div>
-      </div>
-      <div class="kplan-login-msg" id="kplan-login-msg"></div>
-    </div>
-  </div>
-</div>
 
 <header>
   <div class="logo"><span class="logo-icon">P</span>K-Plan</div>
@@ -431,252 +365,6 @@ function _kplanAutoResize(el) {
   el.style.height = el.scrollHeight + 'px';
 }
 
-// ══════════════════════════════════════════════════════════════
-// 전화번호 로그인 오버레이 — klaw webapp.html의 동일 패턴 재사용
-// ══════════════════════════════════════════════════════════════
-let kplanPhoneVerifyToken    = sessionStorage.getItem('kplan_phone_verify_token') || null;
-let kplanPhoneVerifyTokenExp = Number(sessionStorage.getItem('kplan_phone_verify_token_exp') || 0);
-let _kplanPendingE164        = '';
-let _kplanLoginWaiters       = [];
-
-function _kplanHasValidLogin() { return !!kplanPhoneVerifyToken && Date.now() < kplanPhoneVerifyTokenExp - 30000; }
-function _kplanLoginSetMsg(text, kind) {
-  const el = document.getElementById('kplan-login-msg');
-  el.textContent = text || ''; el.className = 'kplan-login-msg' + (kind ? ' ' + kind : '');
-}
-function _kplanLoginResetPhoneStep() {
-  _kplanDevlinkStopPolling();
-  document.getElementById('kplan-login-step-code').style.display = 'none';
-  document.getElementById('kplan-login-step-devlink').style.display = 'none';
-  document.getElementById('kplan-login-step-phone').style.display = '';
-  document.getElementById('kplan-login-code').value = '';
-  _kplanLoginSetMsg('', '');
-}
-
-// ══════════════════════════════════════════════════════════════
-// device-link(sign_request) 로그인
-// SMS 없이 이미 로그인된 폰에 웹푸시로 승인 요청을 보내고, 폰이 스스로
-// 서명해 보내면 서버가 검증 후 phone_verify_token을 발급한다.
-// ══════════════════════════════════════════════════════════════
-let _kplanDevlinkPollTimer = null;
-let _kplanDevlinkSessionId = null;
-let _kplanDevlinkCountdownTimer = null;
-// 2026-09-05 신설 — 웹푸시가 조용히 지연·유실되는 사례가 실사로 재현됨
-// (worker.js의 handleDeviceLinkInit 주석 "사고실험 ③" 참고 — 구독이
-// 만료됐거나 알림 권한이 꺼져도 발송 자체는 성공한 것처럼 보일 수 있음).
-// 그동안은 사용자가 이걸 "실패"로 여기고 전화번호를 처음부터 다시
-// 입력해야만 두 번째 시도에서 성공했다 — 10초 안에 확인(승인)되지
-// 않으면 같은 번호로 새 세션을 만들어 자동으로 재발송한다(주피터
-// 지시). 최대 3회까지만 자동 재발송하고, 그래도 안 되면 기존처럼
-// "번호를 다시 입력할게요"·문자 인증 폴백을 사용자가 직접 선택하게
-// 둔다(무한정 푸시를 보내 스팸처럼 느껴지지 않도록).
-let _kplanDevlinkAutoResendTimer = null;
-let _kplanDevlinkAutoResendCount = 0;
-const _KPLAN_DEVLINK_AUTORESEND_DELAY_MS = 10000;
-const _KPLAN_DEVLINK_AUTORESEND_MAX = 3;
-
-function _kplanDevlinkStopPolling() {
-  if (_kplanDevlinkPollTimer) { clearInterval(_kplanDevlinkPollTimer); _kplanDevlinkPollTimer = null; }
-  if (_kplanDevlinkCountdownTimer) { clearInterval(_kplanDevlinkCountdownTimer); _kplanDevlinkCountdownTimer = null; }
-  if (_kplanDevlinkAutoResendTimer) { clearTimeout(_kplanDevlinkAutoResendTimer); _kplanDevlinkAutoResendTimer = null; }
-  _kplanDevlinkAutoResendCount = 0;
-  _kplanDevlinkSessionId = null;
-  document.removeEventListener('visibilitychange', _kplanDevlinkOnVisibility);
-}
-
-function _kplanDevlinkOnVisibility() {
-  if (!document.hidden && _kplanDevlinkPollTimer) _kplanDevlinkPollOnce();
-}
-
-// 10초 안에 승인 확인이 안 되면 호출됨 — 같은 번호로 새 device-link
-// 세션을 만들어 푸시를 조용히 다시 보낸다. 사용자 입력(전화번호)을
-// 다시 요구하지 않는다.
-async function _kplanDevlinkAutoResend() {
-  _kplanDevlinkAutoResendTimer = null;
-  if (!_kplanDevlinkSessionId || !_kplanPendingE164) return; // 이미 끝났거나 취소됨
-  if (_kplanDevlinkAutoResendCount >= _KPLAN_DEVLINK_AUTORESEND_MAX) return; // 자동 재발송 한도 — 이후는 사용자 선택(재입력/문자)에 맡김
-  _kplanDevlinkAutoResendCount += 1;
-
-  const sigMsg = `kplan-login:${crypto.randomUUID()}:${Date.now()}`;
-  try {
-    const res = await fetch(PROXY + '/auth/device-link/init', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ e164: _kplanPendingE164, pcLabel: 'plan.hondi.net', purpose: 'sign_request', sigMsg }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) { _kplanDevlinkScheduleAutoResend(); return; } // 이번 재발송만 조용히 실패 — 기존 세션 폴링은 계속하고 다음 주기에 다시 시도
-
-    // 기존 세션의 폴링·카운트다운을 새 세션 기준으로 교체한다(오래된
-    // 세션과 새 세션을 동시에 폴링하면 타이머가 두 개로 늘어나
-    // 카운트다운 표시가 서로 덮어써 깜빡이게 된다).
-    if (_kplanDevlinkPollTimer) { clearInterval(_kplanDevlinkPollTimer); _kplanDevlinkPollTimer = null; }
-    if (_kplanDevlinkCountdownTimer) { clearInterval(_kplanDevlinkCountdownTimer); _kplanDevlinkCountdownTimer = null; }
-    _kplanDevlinkSessionId = data.sessionId;
-
-    const statusEl = document.getElementById('kplan-devlink-status');
-    if (statusEl) {
-      statusEl.textContent = data.hasMobileDevice === false
-        ? '이 번호로 연결된 스마트폰이 없습니다 — 아래에서 문자로 받아 주세요.'
-        : '알림을 다시 보냈습니다 — 스마트폰을 확인해 주세요…';
-    }
-    _kplanDevlinkStartCountdown(data.expires_in || 90);
-    _kplanDevlinkPollTimer = setInterval(_kplanDevlinkPollOnce, 2000);
-    _kplanDevlinkScheduleAutoResend();
-  } catch (e) {
-    _kplanDevlinkScheduleAutoResend(); // 네트워크 오류는 조용히 무시하고 다음 주기에 재시도
-  }
-}
-
-function _kplanDevlinkScheduleAutoResend() {
-  if (_kplanDevlinkAutoResendTimer) clearTimeout(_kplanDevlinkAutoResendTimer);
-  if (_kplanDevlinkAutoResendCount >= _KPLAN_DEVLINK_AUTORESEND_MAX) return;
-  _kplanDevlinkAutoResendTimer = setTimeout(_kplanDevlinkAutoResend, _KPLAN_DEVLINK_AUTORESEND_DELAY_MS);
-}
-
-async function _kplanLoginStartDeviceLink() {
-  const phone = document.getElementById('kplan-login-phone').value.trim();
-  if (!phone) { _kplanLoginSetMsg('전화번호를 입력해 주세요.', 'err'); return; }
-  const btn = document.getElementById('kplan-login-devlink-btn');
-  btn.disabled = true; _kplanLoginSetMsg('', '');
-
-  const sigMsg = `kplan-login:${crypto.randomUUID()}:${Date.now()}`;
-  try {
-    const res = await fetch(PROXY + '/auth/device-link/init', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ e164: phone, pcLabel: 'plan.hondi.net', purpose: 'sign_request', sigMsg }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.message || data.detail || '요청에 실패했습니다.');
-
-    _kplanPendingE164 = phone;
-    _kplanDevlinkSessionId = data.sessionId;
-    _kplanDevlinkAutoResendCount = 0;
-    document.getElementById('kplan-login-step-phone').style.display = 'none';
-    document.getElementById('kplan-login-step-devlink').style.display = '';
-
-    const statusEl = document.getElementById('kplan-devlink-status');
-    if (data.hasMobileDevice === false) {
-      statusEl.textContent = '이 번호로 연결된 스마트폰이 없습니다 — 아래에서 문자로 받아 주세요.';
-    } else {
-      statusEl.textContent = '스마트폰 알림을 확인해 주세요…';
-    }
-
-    _kplanDevlinkStartCountdown(data.expires_in || 90);
-    document.addEventListener('visibilitychange', _kplanDevlinkOnVisibility);
-    _kplanDevlinkPollTimer = setInterval(_kplanDevlinkPollOnce, 2000);
-    _kplanDevlinkScheduleAutoResend();
-  } catch (e) {
-    _kplanLoginSetMsg(e.message || '요청에 실패했습니다.', 'err');
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function _kplanDevlinkStartCountdown(seconds) {
-  let remain = seconds;
-  const el = document.getElementById('kplan-devlink-timer');
-  const tick = () => {
-    el.textContent = remain > 0 ? `${remain}초 후 만료` : '만료됨';
-    if (remain <= 0 && _kplanDevlinkCountdownTimer) { clearInterval(_kplanDevlinkCountdownTimer); _kplanDevlinkCountdownTimer = null; }
-    remain -= 1;
-  };
-  tick();
-  _kplanDevlinkCountdownTimer = setInterval(tick, 1000);
-}
-
-async function _kplanDevlinkPollOnce() {
-  if (!_kplanDevlinkSessionId) return;
-  try {
-    const res = await fetch(PROXY + `/auth/device-link/poll?sessionId=${encodeURIComponent(_kplanDevlinkSessionId)}`);
-    const data = await res.json().catch(() => ({}));
-    if (!data.ok) return;
-
-    if (data.state === 'expired') {
-      _kplanDevlinkStopPolling();
-      document.getElementById('kplan-devlink-status').textContent = '요청이 만료됐습니다.';
-      return;
-    }
-    if (data.state === 'verification_failed') {
-      _kplanDevlinkStopPolling();
-      document.getElementById('kplan-devlink-status').textContent = '승인을 확인하지 못했습니다 — 문자 인증으로 진행해 주세요.';
-      return;
-    }
-    if (data.state === 'delivered' && data.verified && data.phone_verify_token) {
-      _kplanDevlinkStopPolling();
-      kplanPhoneVerifyToken    = data.phone_verify_token;
-      kplanPhoneVerifyTokenExp = new Date(data.expires_at).getTime();
-      sessionStorage.setItem('kplan_phone_verify_token', kplanPhoneVerifyToken);
-      sessionStorage.setItem('kplan_phone_verify_token_exp', String(kplanPhoneVerifyTokenExp));
-      document.getElementById('kplan-login-overlay').classList.remove('show');
-      _kplanLoginSetMsg('', '');
-      const waiters = _kplanLoginWaiters; _kplanLoginWaiters = [];
-      waiters.forEach(resolve => resolve());
-    }
-    // 'pending'·'approved'면 계속 대기
-  } catch (e) {
-    // 일시적 네트워크 오류는 무시하고 다음 polling에서 재시도
-  }
-}
-
-async function _kplanLoginSendOtp() {
-  const phone = document.getElementById('kplan-login-phone').value.trim();
-  if (!phone) { _kplanLoginSetMsg('전화번호를 입력해 주세요.', 'err'); return; }
-  const btn = document.getElementById('kplan-login-send-btn');
-  btn.disabled = true; _kplanLoginSetMsg('인증번호 발송 중…', '');
-  try {
-    const res = await fetch(PROXY + '/biz/phone-otp-request', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ e164: phone }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.message || '인증번호 발송에 실패했습니다.');
-    _kplanPendingE164 = phone;
-    document.getElementById('kplan-login-step-phone').style.display = 'none';
-    document.getElementById('kplan-login-step-code').style.display = '';
-    document.getElementById('kplan-login-code').focus();
-    _kplanLoginSetMsg('인증번호를 문자로 보내드렸습니다.', 'ok');
-  } catch (e) { _kplanLoginSetMsg(e.message || '인증번호 발송에 실패했습니다.', 'err'); }
-  finally { btn.disabled = false; }
-}
-async function _kplanLoginVerifyOtp() {
-  const code = document.getElementById('kplan-login-code').value.trim();
-  if (!code) { _kplanLoginSetMsg('인증번호를 입력해 주세요.', 'err'); return; }
-  const btn = document.getElementById('kplan-login-verify-btn');
-  btn.disabled = true; _kplanLoginSetMsg('확인 중…', '');
-  try {
-    const res = await fetch(PROXY + '/biz/phone-otp-verify', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ e164: _kplanPendingE164, code }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok || !data.phone_verify_token) throw new Error(data.message || '인증번호가 일치하지 않습니다.');
-
-    const balRes = await fetch(PROXY + '/user/gdc-balance', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone_verify_token: data.phone_verify_token }),
-    });
-    const balData = await balRes.json().catch(() => ({}));
-    if (!balRes.ok || !balData?.ok) {
-      throw new Error(balData?.message || '이 전화번호로 등록된 고팡 계정을 찾을 수 없습니다. 고팡 앱에서 먼저 가입해 주세요.');
-    }
-
-    kplanPhoneVerifyToken    = data.phone_verify_token;
-    kplanPhoneVerifyTokenExp = new Date(data.expires_at).getTime();
-    sessionStorage.setItem('kplan_phone_verify_token', kplanPhoneVerifyToken);
-    sessionStorage.setItem('kplan_phone_verify_token_exp', String(kplanPhoneVerifyTokenExp));
-    document.getElementById('kplan-login-overlay').classList.remove('show');
-    _kplanLoginSetMsg('', '');
-    const waiters = _kplanLoginWaiters; _kplanLoginWaiters = [];
-    waiters.forEach(resolve => resolve());
-  } catch (e) { _kplanLoginSetMsg(e.message || '인증번호가 일치하지 않습니다.', 'err'); }
-  finally { btn.disabled = false; }
-}
-function _ensureKPlanLogin() {
-  if (_kplanHasValidLogin()) return Promise.resolve();
-  return new Promise((resolve) => {
-    _kplanLoginWaiters.push(resolve);
-    document.getElementById('kplan-login-overlay').classList.add('show');
-  });
-}
 function _kplanIsRecoverableAuthError(message) {
   return /로그인이 필요합니다|인증 토큰이 만료|토큰 서명이 유효하지 않습니다/.test(message || '');
 }
@@ -692,7 +380,7 @@ async function _kplanRelayCall(tier, messages, opts = {}) {
       signal,
       body: JSON.stringify({
         tier, messages, max_tokens: maxTokens, stream: false,
-        generation_type: generationType, phone_verify_token: kplanPhoneVerifyToken,
+        generation_type: generationType, phone_verify_token: KAuth.getToken(),
         // 2026-09-05 신설 — K-Plan→K-Mail 브리프 핸드오프(KPLAN_ISSUE_BRIEF_TO_KMAIL
         // 태그)가 이 plan_id로 kplan_plans 레코드를 찾아 브리프를 저장한다.
         // 아직 플랜이 생성되기 전(첫 메시지)이면 null — 태그가 나와도 서버가
@@ -715,7 +403,7 @@ async function _kplanRelayCall(tier, messages, opts = {}) {
     if (_kplanIsRecoverableAuthError(e.message)) {
       // 2026-09-05 개정(주피터 지시 — "한 번 인증한 사용자에게 재차 인증을
       // 요구하면 안 된다"): 클라이언트 자신이 아직 유효하다고 믿는
-      // 로그인(_kplanHasValidLogin())이 있는 상태에서 서버가 인증
+      // 로그인(KAuth.hasValidLogin())이 있는 상태에서 서버가 인증
       // 오류를 낸 경우, 그건 거의 항상 서버 쪽의 일시적 문제(로그인
       // 직후 첫 호출에서 실사로 재현된 사례)이지 사용자가 실제로
       // 로그인을 잃은 게 아니다. 이 경우 절대로 재로그인 팝업을 다시
@@ -723,9 +411,9 @@ async function _kplanRelayCall(tier, messages, opts = {}) {
       // 조용히 재시도만 하고, 그래도 안 되면 팝업 대신 일반 오류
       // 메시지로 알려 사용자가 방금 쓴 내용 그대로 다시 보내기만 하면
       // 되게 한다. 클라이언트 스스로도 로그인이 없거나 만료됐다고
-      // 판단할 때(_kplanHasValidLogin()이 false)만 재로그인 팝업을
+      // 판단할 때(KAuth.hasValidLogin()이 false)만 재로그인 팝업을
       // 띄운다 — 이건 실제로 재인증이 필요한 유일한 경우다.
-      if (_kplanHasValidLogin()) {
+      if (KAuth.hasValidLogin()) {
         for (const delayMs of [700, 1500, 3000]) {
           if (signal?.aborted) { const abortErr = new Error('중단됨'); abortErr.name = 'AbortError'; throw abortErr; }
           await new Promise(r => setTimeout(r, delayMs));
@@ -733,9 +421,8 @@ async function _kplanRelayCall(tier, messages, opts = {}) {
         }
         throw new Error('일시적인 오류로 응답을 받지 못했습니다 — 방금 보낸 내용 그대로 다시 시도해 주세요.');
       }
-      kplanPhoneVerifyToken = null; kplanPhoneVerifyTokenExp = 0;
-      sessionStorage.removeItem('kplan_phone_verify_token'); sessionStorage.removeItem('kplan_phone_verify_token_exp');
-      await _ensureKPlanLogin();
+      KAuth.logout();
+      await KAuth.ensureLogin();
       return await doRequest();
     }
     throw e;
@@ -940,7 +627,7 @@ async function _kplanChatSend(prefix) {
   const text = input.value.trim();
   if (!text && !st.attachments.length) return;
 
-  await _ensureKPlanLogin();
+  await KAuth.ensureLogin();
 
   const isFirstMessage = st.messages.length === 0;
   let userTurn = text || '(첨부파일 참고)';
@@ -1113,7 +800,7 @@ async function _kplanChatPersist(prefix, status = null) {
       const res = await fetch(PROXY + '/kplan/plan/create', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone_verify_token: kplanPhoneVerifyToken,
+          phone_verify_token: KAuth.getToken(),
           title: (st.goal || refinedMd).slice(0, 60),
           goal: st.goal || refinedMd,
           messages: st.messages, refined_plan_md: refinedMd,
@@ -1128,7 +815,7 @@ async function _kplanChatPersist(prefix, status = null) {
       const res = await fetch(PROXY + '/kplan/plan/checkpoint', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone_verify_token: kplanPhoneVerifyToken, plan_id: st.planId,
+          phone_verify_token: KAuth.getToken(), plan_id: st.planId,
           messages: st.messages, refined_plan_md: refinedMd,
           // 2026-09-05 신설 — 최종본(flash/pro 재검토) 확정 시 'completed'로
           // 넘겨 "내 플랜" 목록·카드에서 최종본임을 표시할 수 있게 한다.
@@ -1167,9 +854,9 @@ function _kplanChatShowAutoSaveStatus(prefix) {
 // 후 "내 플랜" 탭에서 언제든 찾을 수 있다.
 async function _kplanChatTryResume() {
   const planId = localStorage.getItem('kplan_active_plan_id');
-  if (!planId || !_kplanHasValidLogin()) return;
+  if (!planId || !KAuth.hasValidLogin()) return;
   try {
-    const res = await fetch(PROXY + `/kplan/plan/get?plan_id=${encodeURIComponent(planId)}&phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
+    const res = await fetch(PROXY + `/kplan/plan/get?plan_id=${encodeURIComponent(planId)}&phone_verify_token=${encodeURIComponent(KAuth.getToken())}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) { localStorage.removeItem('kplan_active_plan_id'); return; }
     const p = data.plan;
@@ -1245,7 +932,7 @@ function _kplanFormatDate(iso) {
 }
 
 async function _kplanLoadMyPlans() {
-  await _ensureKPlanLogin();
+  await KAuth.ensureLogin();
   document.getElementById('kplan-list-card').style.display = '';
   document.getElementById('kplan-detail-card').style.display = 'none';
   const loading = document.getElementById('kplan-list-loading');
@@ -1253,7 +940,7 @@ async function _kplanLoadMyPlans() {
   const itemsEl = document.getElementById('kplan-list-items');
   loading.style.display = 'flex'; empty.style.display = 'none'; itemsEl.innerHTML = '';
   try {
-    const res = await fetch(PROXY + `/kplan/plan/list?phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
+    const res = await fetch(PROXY + `/kplan/plan/list?phone_verify_token=${encodeURIComponent(KAuth.getToken())}`);
     const data = await res.json().catch(() => ({}));
     loading.style.display = 'none';
     if (!res.ok || !data.ok) throw new Error(data.message || '목록을 불러오지 못했습니다.');
@@ -1350,7 +1037,7 @@ async function _kplanGenerateTaskBoard(prefix) {
 
     const res = await fetch(PROXY + '/kplan/task/bulk-create', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone_verify_token: kplanPhoneVerifyToken, plan_id: st.planId, tasks }),
+      body: JSON.stringify({ phone_verify_token: KAuth.getToken(), plan_id: st.planId, tasks }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) throw new Error(data.message || '작업 생성에 실패했습니다.');
@@ -1368,7 +1055,7 @@ async function _kplanLoadTaskBoard(prefix) {
   const st = _kplanChat[prefix];
   if (!st.planId) return;
   try {
-    const res = await fetch(PROXY + `/kplan/task/list?plan_id=${encodeURIComponent(st.planId)}&phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
+    const res = await fetch(PROXY + `/kplan/task/list?plan_id=${encodeURIComponent(st.planId)}&phone_verify_token=${encodeURIComponent(KAuth.getToken())}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) return;
     _kplanRenderTaskBoard(prefix, data.items || []);
@@ -1402,7 +1089,7 @@ async function _kplanUpdateTaskStatus(prefix, taskId, newStatus) {
   try {
     const res = await fetch(PROXY + '/kplan/task/update', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone_verify_token: kplanPhoneVerifyToken, task_id: taskId, status: newStatus }),
+      body: JSON.stringify({ phone_verify_token: KAuth.getToken(), task_id: taskId, status: newStatus }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) throw new Error(data.message || '상태 변경에 실패했습니다.');
@@ -1414,7 +1101,7 @@ async function _kplanUpdateTaskStatus(prefix, taskId, newStatus) {
 
 async function _kplanOpenPlan(planId) {
   try {
-    const res = await fetch(PROXY + `/kplan/plan/get?plan_id=${encodeURIComponent(planId)}&phone_verify_token=${encodeURIComponent(kplanPhoneVerifyToken)}`);
+    const res = await fetch(PROXY + `/kplan/plan/get?plan_id=${encodeURIComponent(planId)}&phone_verify_token=${encodeURIComponent(KAuth.getToken())}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) throw new Error(data.message || '플랜을 불러오지 못했습니다.');
     const p = data.plan;
